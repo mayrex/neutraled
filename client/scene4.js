@@ -1,3 +1,5 @@
+import { dbg } from './debug.js';
+
 export default class Scene4 extends Phaser.Scene {
     constructor() {
         super('Scene4');
@@ -117,6 +119,9 @@ export default class Scene4 extends Phaser.Scene {
         }
         ).setOrigin(0.5);
 
+        this.hpMax = this.hp;
+        dbg(3, 'battle', 'Scene4', 'params → hpMax:', this.hpMax, 'bullets_speed:', this.bullets_speed, 'battle_box:', this.battle_box_rect_width + 'x' + this.battle_box_rect_height);
+
         this.hp_bar_green = this.add.rectangle(
             this.hp_bar_x,
             this.hp_bar_y,
@@ -133,6 +138,12 @@ export default class Scene4 extends Phaser.Scene {
             0xff0000
         ).setDepth(1).setOrigin(0);
 
+        // LED iniziale
+        if (this.serialBridge?.connected) {
+            const ledVal = Math.round(this.hp / this.hpMax * 100);
+            this.serialBridge.bridge.send({ cmd: 'led', value: ledVal });
+            dbg(3, 'serial', 'LED →', 'value:', ledVal);
+        }
 
     }
 
@@ -258,7 +269,12 @@ export default class Scene4 extends Phaser.Scene {
                     this.guide_text.setText(this.guide_text_string[1]);
                     this.hp -= 2;
                     this.hp_bar_green.setSize(20 * this.hp, 30);
-
+                    const led1 = Math.round(this.hp / this.hpMax * 100);
+                    dbg(3, 'battle', 'Scene4', 'hit → hp:', this.hp, 'LED:', led1 + '%');
+                    if (this.serialBridge?.connected) {
+                        this.serialBridge.bridge.send({ cmd: 'led', value: led1 });
+                        dbg(3, 'serial', 'LED →', 'value:', led1);
+                    }
 
                 });
 
@@ -267,7 +283,12 @@ export default class Scene4 extends Phaser.Scene {
                     this.guide_text.setText(this.guide_text_string[1]);
                     this.hp -= 2;
                     this.hp_bar_green.setSize(20 * this.hp, 30);
-
+                    const led2 = Math.round(this.hp / this.hpMax * 100);
+                    dbg(3, 'battle', 'Scene4', 'hit → hp:', this.hp, 'LED:', led2 + '%');
+                    if (this.serialBridge?.connected) {
+                        this.serialBridge.bridge.send({ cmd: 'led', value: led2 });
+                        dbg(3, 'serial', 'LED →', 'value:', led2);
+                    }
 
                 });
 
@@ -276,7 +297,12 @@ export default class Scene4 extends Phaser.Scene {
                     this.guide_text.setText(this.guide_text_string[1]);
                     this.hp -= 2;
                     this.hp_bar_green.setSize(20 * this.hp, 30);
-
+                    const led3 = Math.round(this.hp / this.hpMax * 100);
+                    dbg(3, 'battle', 'Scene4', 'hit → hp:', this.hp, 'LED:', led3 + '%');
+                    if (this.serialBridge?.connected) {
+                        this.serialBridge.bridge.send({ cmd: 'led', value: led3 });
+                        dbg(3, 'serial', 'LED →', 'value:', led3);
+                    }
 
                 });
 
@@ -285,7 +311,12 @@ export default class Scene4 extends Phaser.Scene {
                     this.guide_text.setText(this.guide_text_string[1]);
                     this.hp -= 2;
                     this.hp_bar_green.setSize(20 * this.hp, 30);
-
+                    const led4 = Math.round(this.hp / this.hpMax * 100);
+                    dbg(3, 'battle', 'Scene4', 'hit → hp:', this.hp, 'LED:', led4 + '%');
+                    if (this.serialBridge?.connected) {
+                        this.serialBridge.bridge.send({ cmd: 'led', value: led4 });
+                        dbg(3, 'serial', 'LED →', 'value:', led4);
+                    }
 
                 });
                 this.isBulletSpawned = true;
@@ -303,6 +334,7 @@ export default class Scene4 extends Phaser.Scene {
             (!this.bullet3 || !this.bullet3.active) &&
             (!this.bullet4 || !this.bullet4.active)
         ) {
+            dbg(3, 'battle', 'Scene4', 'battaglia finita → hp finale:', this.hp);
             this.time.delayedCall(1000, () => {
                 this.guide_text.setText('complimenti hai completato il tutorial!\nora esci dal castello e neutralizza quei mostri!');
                 this.time.delayedCall(7000, () => {

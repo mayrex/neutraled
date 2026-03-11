@@ -113,6 +113,12 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image('human_preview', 'scene3/scene3_player.png');
         this.load.image('monster_preview', 'scene8/monster_player.png');
 
+        // Evoluzione transform animation (320x320 → 64x64 per frame, 5 col × 5 row, 21 frame usati)
+        this.load.spritesheet('evoluzione', './evoluzione/evoluzione.png', {
+            frameWidth: 64,
+            frameHeight: 64
+        });
+
     }
 
     create() {
@@ -237,6 +243,43 @@ export default class PreloadScene extends Phaser.Scene {
             frameRate: 4,
             repeat: 0
         });
+
+        // Animazione trasformazione (21 frame, una tantum, si nasconde al termine)
+        this.anims.create({
+            key: 'evoluzione_anim',
+            frames: this.anims.generateFrameNumbers('evoluzione', { start: 0, end: 20 }),
+            frameRate: 14,
+            repeat: 0,
+            hideOnComplete: true
+        });
+
+        // Texture programmatiche per i collezionabili multiplayer
+        const gfx = this.add.graphics();
+
+        // Solo modalità UMANO → cerchio blu
+        gfx.fillStyle(0x2255dd, 1);
+        gfx.fillCircle(16, 16, 14);
+        gfx.fillStyle(0x88bbff, 1);
+        gfx.fillCircle(10, 10, 5);
+        gfx.generateTexture('collectible_human', 32, 32);
+        gfx.clear();
+
+        // Solo modalità MOSTRO → cerchio viola/rosso
+        gfx.fillStyle(0x881133, 1);
+        gfx.fillCircle(16, 16, 14);
+        gfx.fillStyle(0xff6644, 1);
+        gfx.fillCircle(10, 10, 5);
+        gfx.generateTexture('collectible_monster', 32, 32);
+        gfx.clear();
+
+        // Entrambe le modalità → cerchio dorato
+        gfx.fillStyle(0xccaa00, 1);
+        gfx.fillCircle(16, 16, 14);
+        gfx.fillStyle(0xffee88, 1);
+        gfx.fillCircle(10, 10, 5);
+        gfx.generateTexture('collectible_both', 32, 32);
+        gfx.destroy();
+
         this.scene.start("MenuScene")
 
     }

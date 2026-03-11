@@ -71,6 +71,16 @@ export class GameRoom extends Room {
         }, { except: client });
     });
 
+    this.onMessage('transform', (client, data) => {
+        const player = this.state.players.get(client.sessionId);
+        if (!player || !this.state.started) return;
+        // Relay la trasformazione a tutti gli altri client
+        this.broadcast('player_transform', {
+            sessionId: client.sessionId,
+            mode: data.mode
+        }, { except: client });
+    });
+
     this.onMessage('hit', (client, data) => {
         const { targetId, weaponType } = data;
         const target = this.state.players.get(targetId);

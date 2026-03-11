@@ -1,3 +1,5 @@
+import { dbg } from './debug.js';
+
 export default class Scene9 extends Phaser.Scene {
 
     constructor() {
@@ -166,6 +168,9 @@ export default class Scene9 extends Phaser.Scene {
             }
         ).setOrigin(0.5);
 
+        this.hpMax = this.hp;
+        dbg(3, 'battle', 'Scene9', 'params → hpMax:', this.hpMax, 'battle_box:', this.battleBoxWidth + 'x' + this.battleBoxHeight);
+
         this.hpBarGreen = this.add.rectangle(
             200,
             550,
@@ -181,6 +186,12 @@ export default class Scene9 extends Phaser.Scene {
             30,
             0xff0000
         ).setOrigin(0).setDepth(1);
+
+        // LED iniziale
+        if (this.serialBridge?.connected) {
+            this.serialBridge.bridge.send({ cmd: 'led', value: 100 });
+            dbg(3, 'serial', 'LED →', 'value: 100');
+        }
 
         // ATTACK LOOP
 
@@ -333,6 +344,13 @@ export default class Scene9 extends Phaser.Scene {
 
         this.hpBarGreen.setSize(20 * this.hp, 30);
 
+        const ledVal = Math.round(this.hp / this.hpMax * 100);
+        dbg(3, 'battle', 'Scene9', 'hit → hp:', this.hp, 'LED:', ledVal + '%');
+        if (this.serialBridge?.connected) {
+            this.serialBridge.bridge.send({ cmd: 'led', value: ledVal });
+            dbg(3, 'serial', 'LED →', 'value:', ledVal);
+        }
+
         if (this.hp === 0) {
             this.endBattle(false);
         }
@@ -362,6 +380,7 @@ export default class Scene9 extends Phaser.Scene {
 
     enableFreePhase() {
 
+        dbg(3, 'battle', 'Scene9', 'cambio gravità → fase libera');
         this.gravityEnabled = false;
 
         this.shield.body.setAllowGravity(false);
@@ -374,6 +393,7 @@ export default class Scene9 extends Phaser.Scene {
 
 
     enableGravityDown() {
+        dbg(3, 'battle', 'Scene9', 'cambio gravità → verso il basso (0, 400)');
         this.gravityEnabled = true
         this.setGravityDirection(0, 400)
         this.guideText.setText("gravità verso il basso")
@@ -383,6 +403,7 @@ export default class Scene9 extends Phaser.Scene {
     }
 
     enableGravityUp() {
+        dbg(3, 'battle', 'Scene9', "cambio gravità → verso l'alto (0, -400)");
         this.gravityEnabled = true
         this.setGravityDirection(0, -400)
         this.guideText.setText("gravità verso l'alto")
@@ -471,6 +492,7 @@ export default class Scene9 extends Phaser.Scene {
 
         const attack = Phaser.Utils.Array.GetRandom(attacks)
 
+        dbg(3, 'battle', 'Scene9', 'attacco scelto:', attack.name, '| gravità:', this.gravityEnabled ? 'attiva (fase ' + this.currentPhase + ')' : 'off');
         attack.call(this)
 
     }
@@ -520,6 +542,8 @@ export default class Scene9 extends Phaser.Scene {
     endBattle(victory) {
 
         this.isBattleActive = false;
+
+        dbg(3, 'battle', 'Scene9', victory ? 'vittoria' : 'sconfitta');
 
         if (victory) {
 
