@@ -27,6 +27,7 @@ export default class GameScene extends Phaser.Scene {
 
     // ─── Networking State ───────────────────────────────────────────────────
     this.otherPlayers = new Map(); // Using Map like reference
+    this.npcs = new Map(); // Using Map for ATMs
     this.positionSendTimer = 0;
     this.lastShootTime = 0;
     this.isDead = false;
@@ -43,6 +44,7 @@ export default class GameScene extends Phaser.Scene {
     this.localProjectiles = this.physics.add.group();
     this.remoteProjectiles = this.add.group();
     this.remotePlayersGroup = this.physics.add.group();
+    this.npcGroup = this.physics.add.group();
 
     // ─── Input ──────────────────────────────────────────────────────────────
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -79,6 +81,16 @@ export default class GameScene extends Phaser.Scene {
       padding: { x: 6, y: 4 }
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(50);
 
+    this.evolutionText = this.add.text(10, 66, 'Evoluzione: 0%', {
+      fontFamily: 'monospace',
+      fontSize: '14px',
+      color: '#ffbb00',
+      backgroundColor: '#00000088',
+      padding: { x: 4, y: 3 }
+    }).setScrollFactor(0);
+
+    this.evolutionBar = this.add.graphics().setScrollFactor(0).setDepth(50);
+
     this.createMapObjects();
 
     if (this.room) {
@@ -109,6 +121,13 @@ export default class GameScene extends Phaser.Scene {
         proj.destroy();
         dbg(3, 'multiplayer', 'GameScene', 'hit → targetId:', remoteSprite.sessionId, 'weaponType:', proj.weaponType);
         this.room.send('hit', { targetId: remoteSprite.sessionId, weaponType: proj.weaponType });
+    });
+
+    // Hit detection: Local Projectiles vs NPCs
+    this.physics.add.overlap(this.localProjectiles, this.npcGroup, (proj, npcSprite) => {
+        proj.destroy();
+        dbg(3, 'multiplayer', 'GameScene', 'hit NPC → targetId:', npcSprite.npcId, 'weaponType:', proj.weaponType);
+        this.room.send('hit', { targetId: npcSprite.npcId, weaponType: proj.weaponType });
     });
 
     // Listen to Shoot & Effects
@@ -155,6 +174,65 @@ export default class GameScene extends Phaser.Scene {
         }
     });
 
+    // --- State Listeners: NPCs ---
+    this.room.state.npcs.onAdd((npc, npcId) => {
+        dbg(3, 'multiplayer', 'GameScene', 'NPC spawned → id:', npcId, 'role:', npc.role);
+        const texture = npc.role === 'monster' ? 'monster' : 'player';
+        const sprite = this.physics.add.sprite(npc.x, npc.y, texture).setDepth(8);
+        sprite.npcId = npcId;
+        this.npcGroup.add(sprite);
+
+        const npcObj = {
+            sprite: sprite,
+            nameText: this.add.text(npc.x, npc.y - 45, `NPC ${npc.role}`, { fontSize: '12px', fill: npc.role==='human'?'#ffaaaa':'#aaffaa', stroke: '#000000', strokeThickness: 2 }).setOrigin(0.5).setDepth(11),
+            hpBar: this.add.graphics({ depth: 11 }),
+            targetX: npc.x,
+            targetY: npc.y,
+            role: npc.role
+        };
+        if (texture === 'player' && npcObj.sprite.anims) npcObj.sprite.play('stand');
+        this.npcs.set(npcId, npcObj);
+
+        npc.onChange(() => {
+            const upNpc = this.npcs.get(npcId);
+            if (!upNpc) return;
+            
+            // LERP Targets
+            const dx = Math.abs(npc.x - upNpc.sprite.x);
+            const dy = Math.abs(npc.y - upNpc.sprite.y);
+            if (dx > 150 || dy > 150) upNpc.sprite.body.reset(npc.x, npc.y);
+            
+            upNpc.targetX = npc.x;
+            upNpc.targetY = npc.y;
+            
+            // Animations
+            if (npc.role === 'human') {
+                if (upNpc.sprite.anims && npc.anim && upNpc.sprite.anims.currentAnim?.key !== npc.anim) {
+                    upNpc.sprite.play(npc.anim, true);
+                }
+            } else if (npc.role === 'monster') {
+                if (upNpc.sprite.anims && upNpc.sprite.anims.isPlaying) upNpc.sprite.stop();
+                if (upNpc.sprite.texture.key !== 'monster') upNpc.sprite.setTexture('monster');
+            }
+            
+            if (npc.flipX !== undefined) upNpc.sprite.setFlipX(npc.flipX);
+            
+            if (npc.isDead) {
+                upNpc.sprite.setTint(0x555555);
+            }
+        });
+    });
+
+    this.room.state.npcs.onRemove((npc, npcId) => {
+        const upNpc = this.npcs.get(npcId);
+        if (upNpc) {
+            upNpc.sprite.destroy();
+            upNpc.nameText.destroy();
+            upNpc.hpBar.destroy();
+            this.npcs.delete(npcId);
+        }
+    });
+
     // Listen for players joining or leaving
     this.room.state.players.onAdd((player, sessionId) => {
       
@@ -163,7 +241,7 @@ export default class GameScene extends Phaser.Scene {
         const texture = player.role === 'monster' ? 'monster' : 'player';
         this.localPlayerSprite = this.physics.add.sprite(player.x, player.y, texture);
         this.localPlayerSprite.setCollideWorldBounds(true);
-        if (texture === 'player') this.localPlayerSprite.play('stand');
+        if (texture === 'player' && this.localPlayerSprite.anims) this.localPlayerSprite.play('stand');
         this.localPlayerSprite.setDepth(10);
 
         dbg(3, 'multiplayer', 'GameScene', 'local player joined → team:', player.team, 'role:', player.role, 'hp:', player.hp);
@@ -222,7 +300,7 @@ export default class GameScene extends Phaser.Scene {
             targetY: player.y,
             sessionId: sessionId
         }
-        if (texture === 'player') remoteObj.sprite.play('stand');
+        if (texture === 'player' && remoteObj.sprite.anims) remoteObj.sprite.play('stand');
         this.otherPlayers.set(sessionId, remoteObj);
       }
       player.onChange(() => {
@@ -242,9 +320,20 @@ export default class GameScene extends Phaser.Scene {
             remoteObj.targetX = player.x;
             remoteObj.targetY = player.y;
 
-            if (player.anim && remoteObj.sprite.texture.key === 'player' && remoteObj.sprite.anims.currentAnim?.key !== player.anim) {
-                remoteObj.sprite.play(player.anim, true);
+            // Determine if remote player is human or monster based on player.role
+            if (player.role === 'human') {
+                if (remoteObj.sprite.anims && player.anim && remoteObj.sprite.anims.currentAnim?.key !== player.anim) {
+                    remoteObj.sprite.play(player.anim, true);
+                }
+            } else if (player.role === 'monster') {
+                if (remoteObj.sprite.anims && remoteObj.sprite.anims.isPlaying) {
+                    remoteObj.sprite.stop();
+                }
+                if (remoteObj.sprite.texture.key !== 'monster') {
+                    remoteObj.sprite.setTexture('monster');
+                }
             }
+
             if (player.flipX !== undefined) {
                 remoteObj.sprite.setFlipX(player.flipX);
             }
@@ -264,7 +353,7 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
-  // ─── HP Bar Graphic ───────────────────────────────────────────────────────
+  // ─── HP Bar & Evolution Bar Graphic ───────────────────────────────────────────────────────
   drawHpBar(graphics, x, y, hp) {
       graphics.clear();
       graphics.fillStyle(0x000000, 1);
@@ -273,6 +362,18 @@ export default class GameScene extends Phaser.Scene {
       const pct = Math.max(0, hp / 100);
       graphics.fillStyle(pct > 0.5 ? 0x00ff00 : (pct > 0.2 ? 0xffff00 : 0xff0000), 1);
       graphics.fillRect(x - 19, y - 4, 38 * pct, 4);
+  }
+
+  drawEvolutionBar(graphics, hpBarY, evolutionAmt) {
+      graphics.clear();
+      const pct = Math.max(0, Math.min(100, evolutionAmt) / 100);
+      this.evolutionText.setText(`Evoluzione: ${Math.floor(pct * 100)}%`);
+      
+      graphics.fillStyle(0x000000, 1);
+      graphics.fillRect(10, 90, 200, 12);
+      
+      graphics.fillStyle(0xffaa00, 1);
+      graphics.fillRect(12, 92, 196 * pct, 8);
   }
 
   // ─── Weapons & Shoot ──────────────────────────────────────────────────────
@@ -421,9 +522,20 @@ export default class GameScene extends Phaser.Scene {
       }
     }
 
-    if (this.localPlayerSprite.anims && this.localPlayerSprite.texture.key === 'player' && this.localPlayerSprite.anims.currentAnim?.key !== anim) {
-      if (!this.isDead) this.localPlayerSprite.play(anim, true);
+    // Play animations only if in human mode. Texture checks break because animations change the texture key.
+    if (this.currentMode === 'human') {
+      if (this.localPlayerSprite.anims && this.localPlayerSprite.anims.currentAnim?.key !== anim) {
+        if (!this.isDead) this.localPlayerSprite.play(anim, true);
+      }
+    } else if (this.currentMode === 'monster') {
+      if (this.localPlayerSprite.anims && this.localPlayerSprite.anims.isPlaying) {
+        this.localPlayerSprite.stop();
+      }
+      if (this.localPlayerSprite.texture.key !== 'monster') {
+        this.localPlayerSprite.setTexture('monster');
+      }
     }
+    
     this.localPlayerSprite.setFlipX(flipX);
 
     // Sync Local UI
@@ -432,6 +544,7 @@ export default class GameScene extends Phaser.Scene {
         this.localNameText.setPosition(this.localPlayerSprite.x, this.localPlayerSprite.y - 45);
         this.localNameText.setText(myPlayerState.name || 'You');
         this.drawHpBar(this.localHpBar, this.localPlayerSprite.x, this.localPlayerSprite.y - 35, myPlayerState.hp);
+        this.drawEvolutionBar(this.evolutionBar, this.localPlayerSprite.y - 35, myPlayerState.evolution);
 
         // LED: invia aggiornamento al controller quando l'HP cambia
         if (myPlayerState.hp !== this._lastLedHp) {
@@ -467,6 +580,19 @@ export default class GameScene extends Phaser.Scene {
         }
     });
 
+    // Tick NPCs
+    this.npcs.forEach((npcObj, npcId) => {
+        const nx = npcObj.sprite.x + (npcObj.targetX - npcObj.sprite.x) * lerpFactor;
+        const ny = npcObj.sprite.y + (npcObj.targetY - npcObj.sprite.y) * lerpFactor;
+        npcObj.sprite.body.reset(nx, ny);
+        
+        const nState = this.room.state.npcs.get(npcId);
+        if (nState) {
+            npcObj.nameText.setPosition(npcObj.sprite.x, npcObj.sprite.y - 45);
+            this.drawHpBar(npcObj.hpBar, npcObj.sprite.x, npcObj.sprite.y - 35, nState.hp);
+        }
+    });
+
     // 5. Send position to server at 20 Hz
     this.positionSendTimer += delta;
     if (this.positionSendTimer >= POSITION_SEND_INTERVAL_MS) {
@@ -490,6 +616,14 @@ export default class GameScene extends Phaser.Scene {
 
   triggerTransform() {
     if (this.isTransforming || this.isDead || !this.localPlayerSprite) return;
+
+    // Check Evolution limits for BOTH modes
+    const myPlayerState = this.room.state.players.get(this.room.sessionId);
+    if (myPlayerState.evolution < 100) {
+        dbg(3, 'multiplayer', 'GameScene', 'Trasformazione negata, evoluzione insufficiente:', myPlayerState.evolution);
+        return;
+    }
+
     this.isTransforming = true;
 
     const px = this.localPlayerSprite.x;
@@ -610,6 +744,11 @@ export default class GameScene extends Phaser.Scene {
   collectObject(obj) {
     if (!obj || !obj.active) return;
     obj.body.enable = false; // previene trigger multipli
+
+    // INVIA MESSAGGIO AL SERVER (es. 10 punti evo)
+    if (this.room) {
+        this.room.send('collect_item', { points: 10 });
+    }
 
     this.tweens.add({
       targets: obj,

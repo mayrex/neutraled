@@ -13,6 +13,7 @@ export class Player extends Schema {
     this.name = '';
     this.hp = 100;
     this.isDead = false;
+    this.evolution = 0; // Starts at 0, max 100
   }
 }
 
@@ -26,3 +27,4 @@ type('boolean')(Player.prototype, 'isReady');
 type('string')(Player.prototype, 'name');
 type('number')(Player.prototype, 'hp');
 type('boolean')(Player.prototype, 'isDead');
+type('number')(Player.prototype, 'evolution');
