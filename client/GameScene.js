@@ -516,7 +516,7 @@ export default class GameScene extends Phaser.Scene {
 
       // Tinta mappa: scura in modalità mostro, normale in umano
       if (this.currentMode === 'monster') {
-        this.background.setTint(0x220033); // viola scuro
+        this.background.setTint(0x4a4e69); // viola scuro
       } else {
         this.background.clearTint();
       }
