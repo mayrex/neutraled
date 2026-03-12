@@ -27,12 +27,15 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image('secret_character', './scene2/scene2_secret_character.png');
         this.load.audio('secret_character_talking_sound', './scene2/scene2_secret_character_talking_sound.mp3');
         // Immagini narrative numerate
-        this.load.image('scene2_img1', './scene2/scene2_1.jpeg');
-        this.load.image('scene2_img2', './scene2/scene2_2.jpeg');
-        this.load.image('scene2_img3', './scene2/scene2_3.jpeg');
-        this.load.image('scene2_img4', './scene2/scene2_4.jpeg');
-        // Spritesheet parlante (5°) – trattato come immagine normale
-        this.load.image('scene2_sprite5', './scene2/scene2_5.jpeg');
+        // Spritesheet parlante (5°) – animato
+        this.load.spritesheet('scene2_sprite5', './scene2/carousel/scene2_5.jpeg', {
+            frameWidth: 344,
+            frameHeight: 384
+        });
+        // Immagini carousel (riempiono la metà superiore dello schermo)
+        for (let i = 1; i <= 5; i++) {
+            this.load.image(`scene2_${i}`, `./scene2/carousel/scene2_${i}.jpeg`);
+        }
 
         // ── Scene 3 (Castello – tilemap + player umano) ─────────────────────
         this.load.tilemapTiledJSON('map', './scene3/tile_map/map.json');
@@ -234,6 +237,13 @@ export default class PreloadScene extends Phaser.Scene {
                 { key: 'space_background_frame2' }
             ],
             frameRate: 2,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'scene2_talk',
+            frames: this.anims.generateFrameNumbers('scene2_sprite5', { start: 0, end: 7 }),
+            frameRate: 6,
             repeat: -1
         });
 
