@@ -22,41 +22,45 @@ export default class Scene2 extends Phaser.Scene {
         super('Scene2');
 
         this.SLIDES = [
-            // blocco 0 – personaggio intro
-            { text: 'bentrovato malcapitato',                              img: 'scene2_1', isSprite: true  },
-            { text: 'io sarò la tua guida lungo la tua storia',            img: 'scene2_1', isSprite: true  },
-            { text: 'iniziamo dal principio...',                           img: 'scene2_1', isSprite: true  },
-            // blocco 1-4 – storia narrativa
-            { text: 'tanto tempo fa umani e mostri vivevano in pace',      img: 'scene2_2', isSprite: false },
-            { text: 'le due razze erano separate da un confine stabilito', img: 'scene2_3', isSprite: false },
-            { text: 'ma un giorno gli umani superarono questo confine',    img: 'scene2_4', isSprite: false },
-            { text: "e crearono un grande caos all'interno del regno",     img: 'scene2_4', isSprite: false },
-            { text: 'così i mostri risposero dichiarando guerra agli umani', img: 'scene2_4', isSprite: false },
-            // blocco 5 – personaggio epilogo
-            { text: "spetta a te portare l'ordine nel mondo",              img: 'scene2_5', isSprite: true  },
-            { text: 'perché proprio tu?',                                  img: 'scene2_5', isSprite: true  },
-            { text: 'perché nessun altro ha voglia di farlo!',             img: 'scene2_5', isSprite: true  },
-            { text: 'e no io e te non ci conosciamo!',                     img: 'scene2_5', isSprite: true  },
-            { text: 'ora premi invio per continuare',                      img: 'scene2_5', isSprite: true  },
+            // blocco 0 – personaggio guida intro
+            { text: 'Bentrovato malcapitato', img: 'scene2_5', isSprite: true },
+            { text: 'io sarò la tua guida lungo questa storia', img: 'scene2_5', isSprite: true },
+            { text: 'ma prima... lascia che ti racconti come è iniziata', img: 'scene2_5', isSprite: true },
+            // blocco 1 – storia narrativa
+            { text: 'Un tempo umani e mostri vivevano in pace', img: 'scene2_1', isSprite: false },
+            { text: 'separati da un confine che nessuno aveva mai osato superare', img: 'scene2_2', isSprite: false },
+            { text: 'ma gli umani assetati di potere decisero di varcarlo, portando odio e sete di conquista', img: 'scene2_3', isSprite: false },
+            { text: 'massacrando creature innocenti per le loro sembianze', img: 'scene2_4', isSprite: false },
+            { text: 'I mostri desiderosi di vendetta si riunirono sotto tifone', img: 'scene2_4', isSprite: false },
+            { text: 'e dichiararono guerra al genere umano', img: 'scene2_4', isSprite: false },
+            { text: 'come atto di rivalsa rapirono una ragazza di nome Trilly', img: 'scene2_5', isSprite: true },
+            // blocco 2 – personaggio guida epilogo
+            { text: 'Ecco dove entri in gioco tu...', img: 'scene2_5', isSprite: true },
+            { text: 'sei Finn, fratello di Trilly', img: 'scene2_5', isSprite: true },
+            { text: 'devi addentarti nel mondo dei mostri per salvarla', img: 'scene2_5', isSprite: true },
+            { text: 'sei ancora troppo inesperto per uccidere', img: 'scene2_5', isSprite: true },
+            { text: 'dovrai NEUTRALIZZARE ogni nemico che incontrerai', img: 'scene2_5', isSprite: true },
+            { text: 'la violenza porta solo altra violenza...', img: 'scene2_5', isSprite: true },
+            { text: 'ora premi invio per iniziare', img: 'scene2_5', isSprite: true },
         ];
 
-        this.currentSlide  = 0;
+        this.currentSlide = 0;
         this.currentLetter = 0;
-        this.typingEvent   = null;
-        this.typingDone    = false;
-        this.waitingEnter  = false;
+        this.typingEvent = null;
+        this.typingDone = false;
+        this.waitingEnter = false;
 
-        this.bgSprite       = null;
-        this.imageDisplay   = null;
+        this.bgSprite = null;
+        this.imageDisplay = null;
         this.portraitSprite = null;
-        this.textBox        = null;
-        this.textObj        = null;
-        this.arrowObj       = null;
-        this.enterKey       = null;
+        this.textBox = null;
+        this.textObj = null;
+        this.arrowObj = null;
+        this.enterKey = null;
 
-        this.W     = 800;
-        this.H     = 600;
-        this.IMG_H = 340;
+        this.W = 800;
+        this.H = 600;
+        this.IMG_H = 300;
         this.TYPING_MS = 35;
     }
 
@@ -64,54 +68,62 @@ export default class Scene2 extends Phaser.Scene {
     create() {
         const { W, H, IMG_H } = this;
 
+        // Reset camera – evita offset ereditati da scene precedenti
+        this.cameras.main.setScroll(0, 0);
+
         // ── sfondo spaziale animato (visibile nella zona testo) ───────────────
         this.bgSprite = this.add.sprite(0, 0, 'space_background_frame1')
             .setOrigin(0)
             .setScale(8)
-            .setDepth(0);
+            .setDepth(0)
+            .setScrollFactor(0);
         this.bgSprite.anims.play('skyanimation');
 
         // ── overlay scuro solo sulla zona testo ───────────────────────────────
         this.add.rectangle(W / 2, IMG_H + (H - IMG_H) / 2, W, H - IMG_H, 0x000000, 0.55)
-            .setDepth(1);
+            .setDepth(1)
+            .setScrollFactor(0);
 
         // ── immagine carousel: riempie tutta la metà superiore ────────────────
         this.imageDisplay = this.add.image(W / 2, IMG_H / 2, 'scene2_1')
             .setDisplaySize(W, IMG_H)
             .setDepth(2)
-            .setOrigin(0.5);
+            .setOrigin(0.5)
+            .setScrollFactor(0);
 
-        // ── ritratto sprite5 (centrato nella zona superiore, solo per isSprite) ──
-        // Frame 344×384 → scala 0.85 ≈ 292×326px, ben visibile al centro
+        // ── ritratto sprite5 (centrato, solo per isSprite) ─────────────────────
         this.portraitSprite = this.add.sprite(W / 2, IMG_H / 2, 'scene2_sprite5')
             .setScale(0.85)
             .setDepth(3)
             .setOrigin(0.5)
+            .setScrollFactor(0)
             .setVisible(false);
 
         // ── riquadro testo (metà inferiore) ───────────────────────────────────
-        const textAreaTop = IMG_H + 10;
-        const boxH        = H - IMG_H - 20;
-        const boxY        = IMG_H + 10 + boxH / 2;
+        const textAreaTop = IMG_H;
+        const boxH = H - IMG_H - 20;
+        const boxY = IMG_H + 10 + boxH / 2;
 
         this.textBox = this.add.rectangle(W / 2, boxY, W - 60, boxH, 0x000000, 0.75)
             .setStrokeStyle(2, 0xffffff, 0.6)
-            .setDepth(4);
+            .setDepth(4)
+            .setScrollFactor(0);
 
-        this.textObj = this.add.text(50, textAreaTop + 14, '', {
+        this.textObj = this.add.text(50, textAreaTop + 30, '', {
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '18px',
+            fontSize: '15px',
             color: '#ffffff',
             wordWrap: { width: W - 110 },
-            lineSpacing: 10
-        }).setDepth(5).setOrigin(0);
+            lineSpacing: 12,
+            padding: { top: 10, bottom: 10 }
+        }).setDepth(5).setOrigin(0).setScrollFactor(0);
 
         // ── freccia ▼ ─────────────────────────────────────────────────────────
         this.arrowObj = this.add.text(W - 65, boxY + boxH / 2 - 22, '▼', {
             fontFamily: '"Press Start 2P", monospace',
             fontSize: '18px',
             color: '#ffff00'
-        }).setDepth(5).setVisible(false);
+        }).setDepth(5).setVisible(false).setScrollFactor(0);
 
         this.time.addEvent({
             delay: 500,
