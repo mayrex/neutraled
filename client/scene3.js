@@ -48,6 +48,7 @@ export default class Scene3 extends Phaser.Scene {
     }
 
 
+
     create() {
 
 
@@ -101,7 +102,7 @@ export default class Scene3 extends Phaser.Scene {
 
         this.npc1_x = 16 * 20;
         this.npc1_y = 16 * 79;
-        this.npc1 = this.physics.add.staticSprite(this.npc1_x, this.npc1_y, 'npc1');
+        this.npc1 = this.physics.add.staticSprite(this.npc1_x, this.npc1_y, 'npc1').setScale(0.75);
 
         this.physics.add.collider(this.player, this.npc1);
 
@@ -111,63 +112,10 @@ export default class Scene3 extends Phaser.Scene {
             this.uscita_x,
             this.uscita_y,
             'uscita'
-        ).setOrigin(0.5).setScale(2);
+        ).setOrigin(0.5).setScale(1);
 
 
-        // animazioni walking
 
-        this.anims.create({
-            key: 'upwalk', // parola chiave
-            frames: [
-                { key: 'upwalk_frame1' }, // frames dell'animazione
-                { key: 'upwalk_frame2' },
-                { key: 'upwalk_frame1' },
-                { key: 'upwalk_frame3' }
-            ],
-            frameRate: 6, // quanti frame al secondo
-            repeat: -1  // loop infinito
-        });
-
-        this.anims.create({
-            key: 'leftwalk',
-            frames: [
-                { key: 'leftwalk_frame1' },
-                { key: 'leftwalk_frame2' }
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'rightwalk',
-            frames: [
-                { key: 'rightwalk_frame1' },
-                { key: 'rightwalk_frame2' }
-            ],
-            frameRate: 6,
-            repeat: -1
-
-        });
-
-        this.anims.create({
-            key: 'stand',
-            frames: [
-                { key: 'player' },
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'walk',
-            frames: [
-                { key: 'player' },
-                { key: 'downwalk_frame2' },
-                { key: 'downwalk_frame3' }
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
 
 
         this.physics.add.overlap(
@@ -179,6 +127,9 @@ export default class Scene3 extends Phaser.Scene {
         );
 
 
+        if (!this.registry.get('is_player_human')) {
+            this.player.setTexture('monster_player_downwalking_frame1');
+        }
 
 
 
@@ -218,7 +169,11 @@ export default class Scene3 extends Phaser.Scene {
 
             animation_is_playing = true;
 
-            this.player.anims.play('stand');
+            if (this.registry.get('is_player_human')) {
+                this.player.anims.play('stand');
+            } else {
+                this.player.anims.play('monster_stand');
+            }
 
         }
 
@@ -226,7 +181,7 @@ export default class Scene3 extends Phaser.Scene {
             this.walking_script();
         }
 
-        
+
     }
 
 
@@ -421,19 +376,35 @@ export default class Scene3 extends Phaser.Scene {
 
         if (this.keys.up.isDown) {
 
-            anim = 'upwalk';
+            if (this.registry.get('is_player_human')) {
+                anim = 'upwalk';
+            } else {
+                anim = 'monster_upwalk';
+            }
         }
         if (this.keys.down.isDown) {
 
-            anim = 'walk';
+            if (this.registry.get('is_player_human')) {
+                anim = 'walk';
+            } else {
+                anim = 'monster_downwalk';
+            }
         }
         if (this.keys.left.isDown) {
 
-            anim = 'leftwalk';
+            if (this.registry.get('is_player_human')) {
+                anim = 'leftwalk';
+            } else {
+                anim = 'monster_leftwalk';
+            }
         }
         if (this.keys.right.isDown) {
 
-            anim = 'rightwalk';
+            if (this.registry.get('is_player_human')) {
+                anim = 'rightwalk';
+            } else {
+                anim = 'monster_rightwalk';
+            }
         }
 
         if (anim) {
@@ -441,7 +412,11 @@ export default class Scene3 extends Phaser.Scene {
                 this.player.anims.play(anim);
             }
         } else {
-            this.player.anims.play('stand', true);
+            if (this.registry.get('is_player_human')) {
+                this.player.anims.play('stand', true);
+            } else {
+                this.player.anims.play('monster_stand', true);
+            }
         }
 
     }
@@ -536,4 +511,3 @@ export default class Scene3 extends Phaser.Scene {
     }
 
 }
-

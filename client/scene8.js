@@ -53,6 +53,7 @@ export default class Scene8 extends Phaser.Scene {
     }
 
 
+
     create() {
 
         //INPUT
@@ -89,12 +90,12 @@ export default class Scene8 extends Phaser.Scene {
 
 
         // ===== NPC ===== //
-        this.npc1 = this.physics.add.staticSprite(this.npc1_x, this.npc1_y, 'player');
+        this.npc1 = this.physics.add.staticSprite(this.npc1_x, this.npc1_y, 'enemy3_frame1').setScale(3);
         this.physics.add.collider(this.player, this.npc1);
 
 
-        this.npc2 = this.physics.add.staticSprite(this.npc2_x, this.npc2_y, 'player');
-        this.physics.add.collider(this.player, this.npc2);
+        this.npc2 = this.physics.add.staticSprite(this.npc2_x, this.npc2_y, 'npc1');
+        this.physics.add.collider(this.player, this.npc2).setScale(0.5);
 
 
 
@@ -178,6 +179,18 @@ export default class Scene8 extends Phaser.Scene {
             repeat: -1
         });
 
+        if (this.registry.get('enemy3_defeated')) {
+            this.npc1.destroy();
+            this.player.x = this.registry.get('scene8_player_x');
+            this.player.y = this.registry.get('scene8_player_y');
+        } else {
+            this.eventTriggered1 = false;
+        }
+
+        if (!this.registry.get('is_player_human')) {
+            this.player.setTexture('monster_player_downwalking_frame1');
+        }
+
 
     }
 
@@ -193,14 +206,22 @@ export default class Scene8 extends Phaser.Scene {
 
             this.animation_script1();
 
-            this.player.anims.play('stand');
+            if (this.registry.get('is_player_humn')) {
+                this.player.anims.play('stand');
+            } else {
+                this.player.anims.play('monster_stand');
+            }
         }
 
         if (this.player.y < this.npc2.y + 16 * 4 && !this.eventTriggered2) {
             this.playerspeed = 0;
             this.eventTriggered2 = true;
             this.animation_script2();
-            this.player.anims.play('stand');
+            if (this.registry.get('is_player_humn')) {
+                this.player.anims.play('stand');
+            } else {
+                this.player.anims.play('monster_stand');
+            }
 
         }
 
@@ -226,48 +247,40 @@ export default class Scene8 extends Phaser.Scene {
 
         if (this.keys.up.isDown && this.is_camera_moving) {
             this.player.setVelocityY(-this.playerspeed);
-            if (this.player_is_human) {
-                anim = 'upwalk';
-            } else {
-                anim = 'monster_player_stand';
-            }
+            anim = 'upwalk';
         }
 
         if (this.keys.down.isDown && this.is_camera_moving) {
             this.player.setVelocityY(this.playerspeed);
-            if (this.player_is_human) {
-                anim = 'walk';
-            } else {
-                anim = 'monster_player_stand';
-            }
+            anim = 'walk';
         }
 
         if (this.keys.left.isDown && this.is_camera_moving) {
             this.player.setVelocityX(-this.playerspeed);
-            if (this.player_is_human) {
-                anim = 'leftwalk';
-            } else {
-                anim = 'monster_player_stand';
-            }
+            anim = 'leftwalk';
         }
 
         if (this.keys.right.isDown && this.is_camera_moving) {
             this.player.setVelocityX(this.playerspeed);
-            if (this.player_is_human) {
-                anim = 'rightwalk';
-            } else {
-                anim = 'monster_player_stand';
-            }
+            anim = 'rightwalk';
+        }
+
+
+        if (!this.registry.get('is_player_human')) {
+            anim = 'monster_' + anim;
         }
 
 
         if (anim) {
             if (this.player.anims.currentAnim?.key !== anim) {
+
                 this.player.anims.play(anim);
             }
         } else {
-            if (this.player_is_human) {
+            if (this.registry.get('is_player_human')) {
                 this.player.anims.play('stand', true);
+            } else {
+                this.player.anims.play('monster_stand', true);
             }
         }
 
@@ -407,6 +420,8 @@ export default class Scene8 extends Phaser.Scene {
             this.is_camera_moving = true;
 
             if (this.eventTriggered1 && !this.eventTriggered2) {
+                this.registry.set('scene8_player_x', this.player.x);
+                this.registry.set('scene8_player_y', this.player.y);
                 this.scene.start("Scene9");
             }
             if (this.eventTriggered2) {

@@ -31,6 +31,7 @@ export default class Scene12 extends Phaser.Scene {
     }
 
 
+
     create() {
 
         //INPUT
@@ -70,7 +71,7 @@ export default class Scene12 extends Phaser.Scene {
 
         // npc 
 
-        this.npc = this.physics.add.sprite(this.npc_x, this.npc_y, 'player');
+        this.npc = this.physics.add.sprite(this.npc_x, this.npc_y + 2, 'enemy5_frame1').setFlipX(true);
 
 
 
@@ -132,6 +133,18 @@ export default class Scene12 extends Phaser.Scene {
             repeat: -1
         });
 
+        if (this.registry.get('scene13_npc_defeated')) {
+            this.npc.destroy();
+            this.player.x = this.registry.get('scene12_player_x');
+            this.player.y = this.registry.get('scene12_player_y');
+            this.event_triggered = true;
+        } else {
+            this.event_triggered = false;
+        }
+
+        if (!this.registry.get('is_player_human')) {
+            this.player.setTexture('monster_player_downwalking_frame1');
+        }
     }
 
     update() {
@@ -173,12 +186,22 @@ export default class Scene12 extends Phaser.Scene {
         }
 
 
+        if (!this.registry.get('is_player_human')) {
+            anim = 'monster_' + anim;
+        }
+
+
         if (anim) {
             if (this.player.anims.currentAnim?.key !== anim) {
+
                 this.player.anims.play(anim);
             }
         } else {
-            this.player.anims.play('stand', true);
+            if (this.registry.get('is_player_human')) {
+                this.player.anims.play('stand', true);
+            } else {
+                this.player.anims.play('monster_stand', true);
+            }
         }
 
         if (this.player.x < 8) {
@@ -253,6 +276,9 @@ export default class Scene12 extends Phaser.Scene {
             this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
             this.playerspeed = 120;
             this.is_camera_moving = true;
+
+            this.registry.set('scene12_player_x', this.player.x);
+            this.registry.set('scene12_player_y', this.player.y);
 
             this.scene.start('Scene13');
 

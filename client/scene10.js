@@ -34,6 +34,7 @@ export default class Scene10 extends Phaser.Scene {
 
 
 
+
     create() {
 
         //INPUT
@@ -68,7 +69,7 @@ export default class Scene10 extends Phaser.Scene {
 
         // NPC
 
-        this.npc = this.physics.add.staticSprite(this.npc_x, this.npc_y, 'npc_monster');
+        this.npc = this.physics.add.staticSprite(this.npc_x, this.npc_y, 'enemy4_frame1').setFlipX(true);
 
 
 
@@ -132,6 +133,19 @@ export default class Scene10 extends Phaser.Scene {
             frameRate: 6,
             repeat: -1
         });
+
+        if (this.registry.get('scene11_npc_defeated')) {
+            this.npc.destroy();
+            this.event_triggered = true;
+            this.player.x = this.registry.get('scene10_player_x');
+            this.player.y = this.registry.get('scene10_player_y');
+        } else {
+            this.event_triggered = false;
+        }
+
+        if (!this.registry.get('is_player_human')) {
+            this.player.setTexture('monster_player_downwalking_frame1');
+        }
 
     }
 
@@ -201,12 +215,22 @@ export default class Scene10 extends Phaser.Scene {
         }
 
 
+        if (!this.registry.get('is_player_human')) {
+            anim = 'monster_' + anim;
+        }
+
+
         if (anim) {
             if (this.player.anims.currentAnim?.key !== anim) {
+
                 this.player.anims.play(anim);
             }
         } else {
-            this.player.anims.play('stand', true);
+            if (this.registry.get('is_player_human')) {
+                this.player.anims.play('stand', true);
+            } else {
+                this.player.anims.play('monster_stand', true);
+            }
         }
 
 
@@ -275,6 +299,9 @@ export default class Scene10 extends Phaser.Scene {
             this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
             this.playerspeed = 120;
             this.is_camera_moving = true;
+
+            this.player.x = this.registry.set('scene10_player_x', this.player.x);
+            this.player.y = this.registry.set('scene10_player_y', this.player.y);
 
             this.scene.start('Scene11');
 

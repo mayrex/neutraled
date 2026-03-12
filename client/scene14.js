@@ -52,6 +52,8 @@ export default class Scene14 extends Phaser.Scene {
     }
 
 
+
+
     create() {
 
         //INPUT
@@ -165,6 +167,10 @@ export default class Scene14 extends Phaser.Scene {
             repeat: -1
         });
 
+        if (!this.registry.get('is_player_human')) {
+            this.player.setTexture('monster_player_downwalking_frame1');
+        }
+
 
     }
 
@@ -200,12 +206,22 @@ export default class Scene14 extends Phaser.Scene {
         }
 
 
+        if (!this.registry.get('is_player_human')) {
+            anim = 'monster_' + anim;
+        }
+
+
         if (anim) {
             if (this.player.anims.currentAnim?.key !== anim) {
+
                 this.player.anims.play(anim);
             }
         } else {
-            this.player.anims.play('stand', true);
+            if (this.registry.get('is_player_human')) {
+                this.player.anims.play('stand', true);
+            } else {
+                this.player.anims.play('monster_stand', true);
+            }
         }
 
         if (this.player.x < 8) {

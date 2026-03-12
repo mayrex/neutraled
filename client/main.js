@@ -50,6 +50,11 @@ const config = {
       debug: false       // opzionale, utile per vedere collisioni
     }
   },
+    fps: {
+        target: 60,  // massimo FPS desiderato
+        forceSetTimeOut: true // se true, usa setTimeout invece di requestAnimationFrame
+    }
+
 };
 
 const game = new Phaser.Game(config);

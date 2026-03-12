@@ -1,5 +1,3 @@
-import { dbg } from './debug.js';
-
 export default class Scene6 extends Phaser.Scene {
 
     constructor() {
@@ -28,6 +26,7 @@ export default class Scene6 extends Phaser.Scene {
 
         this.isBattleActive = true;
     }
+
 
 
     create() {
@@ -71,7 +70,7 @@ export default class Scene6 extends Phaser.Scene {
         this.enemy = this.add.sprite(
             400,
             100,
-            'npc'
+            'enemy1'
         ).setScale(3);
 
         // BULLET GROUP
@@ -80,7 +79,7 @@ export default class Scene6 extends Phaser.Scene {
 
 
         // COLLISIONS
-
+        
 
         this.physics.add.overlap(
             this.shield,
@@ -99,6 +98,9 @@ export default class Scene6 extends Phaser.Scene {
         );
 
 
+        // hp
+
+        this.hp = 20;
 
         // UI
 
@@ -113,9 +115,6 @@ export default class Scene6 extends Phaser.Scene {
                 wordWrap: { width: 250 }
             }
         ).setOrigin(0.5);
-
-        this.hpMax = this.hp;
-        dbg(3, 'battle', 'Scene6', 'params → hpMax:', this.hpMax, 'battle_box:', this.battleBoxWidth + 'x' + this.battleBoxHeight);
 
         this.hpBarGreen = this.add.rectangle(
             200,
@@ -133,12 +132,6 @@ export default class Scene6 extends Phaser.Scene {
             0xff0000
         ).setOrigin(0).setDepth(1);
 
-        // LED iniziale
-        if (this.serialBridge?.connected) {
-            this.serialBridge.bridge.send({ cmd: 'led', value: 100 });
-            dbg(3, 'serial', 'LED →', 'value: 100');
-        }
-
         // ATTACK LOOP
 
         this.time.addEvent({
@@ -149,21 +142,23 @@ export default class Scene6 extends Phaser.Scene {
         });
 
         this.time.addEvent({
-            delay: 40000,
-            loop: false,
+            delay:40000,
+            loop:false,
             callback: this.win_script,
-            callbackScope: this
+            callbackScope:this
         });
+        
+
+        
 
     }
 
     update() {
 
         if (!this.isBattleActive) return;
-        if (this.hp == 0) {
-            this.scene.start('Scene5');
-        }
 
+
+        
         this.handleMovement();
 
     }
@@ -210,7 +205,7 @@ export default class Scene6 extends Phaser.Scene {
 
     }
 
-    blockBullet(shield, bullet) {
+    blockBullet( shield,bullet) {
 
         if (!bullet.active) return;
 
@@ -219,7 +214,7 @@ export default class Scene6 extends Phaser.Scene {
     }
 
 
-    hitPlayer(player, bullet) {
+    hitPlayer( player,bullet) {
 
         if (!bullet.active) return;
 
@@ -235,26 +230,22 @@ export default class Scene6 extends Phaser.Scene {
 
     damagePlayer() {
 
-        this.hp -= 2;
+    this.hp -= 2;
 
-        if (this.hp < 0) {
-            this.hp = 0;
-        }
+    if (this.hp < 0) {
+        this.hp = 0;
+    }
 
-        this.hpBarGreen.setSize(20 * this.hp, 30);
+    this.hpBarGreen.setSize(20 * this.hp, 30);
 
-        const ledVal = Math.round(this.hp / this.hpMax * 100);
-        dbg(3, 'battle', 'Scene6', 'hit → hp:', this.hp, 'LED:', ledVal + '%');
-        if (this.serialBridge?.connected) {
-            this.serialBridge.bridge.send({ cmd: 'led', value: ledVal });
-            dbg(3, 'serial', 'LED →', 'value:', ledVal);
-        }
+    if (this.hp === 0) {
 
-        if (this.hp === 0) {
-            this.endBattle(false);
-        }
+        this.registry.set('enemy1_defeated', false);
+        this.scene.start('Scene5');
 
     }
+
+}
 
     // ATTACKS
 
@@ -362,7 +353,6 @@ export default class Scene6 extends Phaser.Scene {
 
         const attack = Phaser.Utils.Array.GetRandom(attacks);
 
-        dbg(3, 'battle', 'Scene6', 'attacco scelto:', attack.name);
         attack.call(this);
 
     }
@@ -371,10 +361,9 @@ export default class Scene6 extends Phaser.Scene {
 
         this.isBattleActive = false;
 
-        dbg(3, 'battle', 'Scene6', victory ? 'vittoria' : 'sconfitta');
-
         if (victory) {
 
+            if(this.hp> 0){
             this.guideText.setText(
                 "complimenti hai neutralizzato il mostro!"
             );
@@ -389,15 +378,22 @@ export default class Scene6 extends Phaser.Scene {
                 this.scene.start("Scene5");
 
             });
+        }
 
         }
 
     }
 
-    win_script() {
+     win_script(){
 
-        this.registry.set('enemy1_defeated', true);
+        if(this.hp>0){
+        this.registry.set('enemy1_defeated',true);
         this.scene.start('Scene5');
-    }
+        }else {
+            this.registry.set('enemy1_defeated',false);
+            this.scene.stop();
+        this.scene.start('Scene5');
+        }
+     }
 
 }

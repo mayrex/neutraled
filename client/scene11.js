@@ -30,7 +30,7 @@ export default class Scene11 extends Phaser.Scene {
         this.npc_hp_bar = null;
         this.npc_hp_bar_green = null;
         this.npc_hp_bar_red = null;
-        this.npc_hp = 100;
+        this.npc_hp = 70;
         this.npc_hp_bar_x = 200;
         this.npc_hp_bar_y = 50;
 
@@ -54,11 +54,24 @@ export default class Scene11 extends Phaser.Scene {
         this.npc_base_x = 400;
         this.npc_amplitude = 120;
         this.npc_speed = 0.002;
+
+        this.moltiplicatore_hp_bar_npc = 400 / this.npc_hp
     }
 
 
 
+
     create() {
+        this.player_hp = 20;
+        this.npc_hp = 70;
+
+        this.last_shot = 0;
+        this.attack_phase = 0;
+
+        this.seconds_waiter = 60 * 5;
+        this.nextPlayerShot = 0;
+        this.canShoot = true;
+
 
         // input
         this.keys = this.input.keyboard.addKeys({
@@ -88,6 +101,10 @@ export default class Scene11 extends Phaser.Scene {
         // proiettili
 
         this.bullets = this.physics.add.group();
+
+        this.bullets.children.each(b => {
+            b.destroy();
+        })
 
         // this.attack_timer = this.time.addEvent({
         //     delay: 5000,
@@ -142,14 +159,14 @@ export default class Scene11 extends Phaser.Scene {
 
 
         // npc
-        this.npc = this.physics.add.sprite(400, 130, 'npc_monster').setDepth(3).setScale(2);
+        this.npc = this.physics.add.sprite(400, 130, 'enemy4_frame1').setDepth(3).setScale(2);
         this.physics.add.overlap(
             this.player_attacks,
             this.npc,
             (attack, npc) => {
                 npc.destroy();
                 this.npc_hp -= 2;
-                this.npc_hp_bar_green.setSize(4 * this.npc_hp, 30);
+                this.npc_hp_bar_green.setSize(this.moltiplicatore_hp_bar_npc * this.npc_hp, 30);
             },
             null,
             this
@@ -180,7 +197,7 @@ export default class Scene11 extends Phaser.Scene {
         this.npc_hp_bar_green = this.add.rectangle(
             this.npc_hp_bar_x,
             this.npc_hp_bar_y,
-            4 * this.npc_hp,
+            this.moltiplicatore_hp_bar_npc * this.npc_hp,
             30,
             0x00ff00
         ).setDepth(2).setOrigin(0);
@@ -188,10 +205,19 @@ export default class Scene11 extends Phaser.Scene {
         this.npc_hp_bar_red = this.add.rectangle(
             this.npc_hp_bar_x,
             this.npc_hp_bar_y,
-            4 * this.npc_hp,
+            this.moltiplicatore_hp_bar_npc * this.npc_hp,
             30,
             0xff0000
         ).setDepth(1).setOrigin(0);
+
+        this.events.on('shutdown', () => {
+
+            if (this.attack_timer) {
+                this.attack_timer.remove();
+            }
+
+        });
+
 
     }
 
@@ -235,15 +261,23 @@ export default class Scene11 extends Phaser.Scene {
         });
 
         if (this.player_hp <= 0) {
-            this.scene.start('Scene10');
-            this.scene.stop();
-            this.registry.set('scene11_npc_defeated', true);
-        }
 
-        if (this.npc_hp <= 0) {
+            if (this.attack_timer) {
+                this.attack_timer.remove();
+            }
             this.scene.start('Scene10');
             this.scene.stop();
             this.registry.set('scene11_npc_defeated', false);
+        }
+
+        if (this.npc_hp <= 0) {
+
+            if (this.attack_timer) {
+                this.attack_timer.remove();
+            }
+            this.scene.start('Scene10');
+            this.scene.stop();
+            this.registry.set('scene11_npc_defeated', true);
 
         }
     }
