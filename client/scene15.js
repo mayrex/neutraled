@@ -184,22 +184,22 @@ export default class Scene15 extends Phaser.Scene {
 
         //
 
+        const playerBarMaxWidth = this.player.width + 15;
         this.player_hp_red_bar = this.add.rectangle(
-            this.player.x - (this.max_hp * 4) / 2,
+            this.player.x - playerBarMaxWidth / 2,
             this.player.y - 20,
-            this.max_hp * 4,
+            playerBarMaxWidth,
             5,
             0xff0000
         ).setDepth(10 - 2).setOrigin(0, 0.5).setVisible(false);
 
         this.player_hp_green_bar = this.add.rectangle(
-            this.player.x - (this.max_hp * 4) / 2,
+            this.player.x - playerBarMaxWidth / 2,
             this.player.y - 20,
-            this.max_hp * 4,
+            playerBarMaxWidth,
             5,
             0x00ff00
         ).setDepth(10 - 2).setOrigin(0, 0.5).setVisible(false);
-
 
         this.tifone_hp_red_bar = this.add.rectangle(
             this.tifone.x - 100, // 200 hp * 2 width = 400 total. Wait, max hp is 100 for tifone, but 200 health text. Let's make it shift by 100.
@@ -1231,11 +1231,16 @@ export default class Scene15 extends Phaser.Scene {
     }
 
     handle_hp_bars() {
+        const playerBarMaxWidth = this.player.width + 15;
         this.player_hp_green_bar.y = this.player.y - 20;
         this.player_hp_red_bar.y = this.player.y - 20;
 
-        this.player_hp_green_bar.x = this.player.x - (this.max_hp * 4) / 2;
-        this.player_hp_red_bar.x = this.player.x - (this.max_hp * 4) / 2;
+        this.player_hp_green_bar.x = this.player.x - playerBarMaxWidth / 2;
+        this.player_hp_red_bar.x = this.player.x - playerBarMaxWidth / 2;
+
+        this.player_hp_red_bar.width = playerBarMaxWidth;
+        this.player_hp_red_bar.geom.width = playerBarMaxWidth;
+        this.player_hp_red_bar.setSize(playerBarMaxWidth, 5);
 
         if(this.tifone){
         this.tifone_hp_red_bar.y = this.tifone.y - 200;
@@ -1250,7 +1255,7 @@ export default class Scene15 extends Phaser.Scene {
         this.max_hp = this.base_max_hp * pLevel;
 
         const pct = this.player_hp / this.max_hp;
-        let cWidth = (0.5 * this.max_hp) * pct; // Match constructor multiplier (this.player_hp * 4)
+        let cWidth = playerBarMaxWidth * pct;
         if (cWidth < 0) cWidth = 0;
         this.player_hp_green_bar.width = cWidth ;
         this.player_hp_green_bar.geom.width = cWidth;
