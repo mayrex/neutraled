@@ -13,6 +13,16 @@ export default class MenuScene extends Phaser.Scene {
         this.createMonsters();
         this.createTitle();
         this.createButtons();
+
+        this.menuMusic = this.sound.add('menu_music', { loop: true, volume: 0.6 });
+
+        if (this.sound.locked) {
+            this.sound.once(Phaser.Sound.Events.UNLOCKED, () => this.menuMusic.play());
+        } else {
+            this.menuMusic.play();
+        }
+
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.menuMusic.stop());
     }
 
     // -------------------------------------------------------------------
