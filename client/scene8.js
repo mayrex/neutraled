@@ -52,9 +52,18 @@ export default class Scene8 extends Phaser.Scene {
 
     }
 
-
+    
 
     create() {
+
+        
+        if (!this.scene.isActive('SceneUI')) {
+            this.scene.launch('SceneUI');
+        }
+        this.scene.bringToTop('SceneUI');
+    
+    
+
 
         //INPUT
         this.keys = this.input.keyboard.addKeys({
@@ -94,8 +103,8 @@ export default class Scene8 extends Phaser.Scene {
         this.physics.add.collider(this.player, this.npc1);
 
 
-        this.npc2 = this.physics.add.staticSprite(this.npc2_x, this.npc2_y, 'npc1');
-        this.physics.add.collider(this.player, this.npc2).setScale(0.5);
+        this.npc2 = this.physics.add.staticSprite(this.npc2_x, this.npc2_y, 'npc1').setScale(0.5);;
+        this.physics.add.collider(this.player, this.npc2)
 
 
 
@@ -120,7 +129,7 @@ export default class Scene8 extends Phaser.Scene {
 
         // ===== ANIMAZIONI =====
 
-        this.anims.create({
+        if (!this.anims.exists('upwalk')) this.anims.create({
             key: 'upwalk',
             frames: [
                 { key: 'upwalk_frame1' },
@@ -132,7 +141,7 @@ export default class Scene8 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('leftwalk')) this.anims.create({
             key: 'leftwalk',
             frames: [
                 { key: 'leftwalk_frame1' },
@@ -142,7 +151,7 @@ export default class Scene8 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('rightwalk')) this.anims.create({
             key: 'rightwalk',
             frames: [
                 { key: 'rightwalk_frame1' },
@@ -152,7 +161,7 @@ export default class Scene8 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('walk')) this.anims.create({
             key: 'walk',
             frames: [
                 { key: 'player' },
@@ -163,14 +172,14 @@ export default class Scene8 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('stand')) this.anims.create({
             key: 'stand',
             frames: [{ key: 'player' }],
             frameRate: 6,
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('monster_player_stand')) this.anims.create({
             key: 'monster_player_stand',
             frames: [{
                 key: 'monster_player_stand_frame'
@@ -190,8 +199,6 @@ export default class Scene8 extends Phaser.Scene {
         if (!this.registry.get('is_player_human')) {
             this.player.setTexture('monster_player_downwalking_frame1');
         }
-
-
     }
 
     update() {
@@ -340,7 +347,10 @@ export default class Scene8 extends Phaser.Scene {
                 this.guide_text_string[this.dialogueIndex],
                 {
                     fontSize: '20px',
-                    color: '#ffffff',
+                    color: '#ffffff', 
+            fontFamily: 'Courier, monospace',
+            stroke: '#000000',
+            strokeThickness: 4,
                     align: 'center',
                     wordWrap: { width: 280 }
                 }
@@ -383,7 +393,10 @@ export default class Scene8 extends Phaser.Scene {
                 this.guide_text_string1[this.dialogueIndex],
                 {
                     fontSize: '20px',
-                    color: '#ffffff',
+                    color: '#ffffff', 
+            fontFamily: 'Courier, monospace',
+            stroke: '#000000',
+            strokeThickness: 4,
                     align: 'center',
                     wordWrap: { width: 280 }
                 }

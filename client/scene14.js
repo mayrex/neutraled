@@ -52,9 +52,21 @@ export default class Scene14 extends Phaser.Scene {
     }
 
 
-
+    
 
     create() {
+
+        
+        if (!this.scene.isActive('SceneUI')) {
+            this.scene.launch('SceneUI');
+        }
+        this.scene.bringToTop('SceneUI');
+    
+    
+
+
+        this.sound.stopAll();
+        this.sound.play('scene14_audio', { loop: true });
 
         //INPUT
         this.keys = this.input.keyboard.addKeys({
@@ -110,14 +122,17 @@ export default class Scene14 extends Phaser.Scene {
             "",
             {
                 fontSize: "16px",
-                color: "#ffffff",
+                color: "#ffffff", 
+            fontFamily: 'Courier, monospace',
+            stroke: '#000000',
+            strokeThickness: 4,
                 wordWrap: { width: 500 }
             }
         ).setScrollFactor(0).setDepth(11).setVisible(false).setOrigin(0.5);
 
         // ===== ANIMAZIONI =====
 
-        this.anims.create({
+        if (!this.anims.exists('upwalk')) this.anims.create({
             key: 'upwalk',
             frames: [
                 { key: 'upwalk_frame1' },
@@ -129,7 +144,7 @@ export default class Scene14 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('leftwalk')) this.anims.create({
             key: 'leftwalk',
             frames: [
                 { key: 'leftwalk_frame1' },
@@ -139,7 +154,7 @@ export default class Scene14 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('rightwalk')) this.anims.create({
             key: 'rightwalk',
             frames: [
                 { key: 'rightwalk_frame1' },
@@ -149,7 +164,7 @@ export default class Scene14 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('walk')) this.anims.create({
             key: 'walk',
             frames: [
                 { key: 'player' },
@@ -160,7 +175,7 @@ export default class Scene14 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('stand')) this.anims.create({
             key: 'stand',
             frames: [{ key: 'player' }],
             frameRate: 6,
@@ -170,8 +185,6 @@ export default class Scene14 extends Phaser.Scene {
         if (!this.registry.get('is_player_human')) {
             this.player.setTexture('monster_player_downwalking_frame1');
         }
-
-
     }
 
     update() {

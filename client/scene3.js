@@ -52,6 +52,15 @@ export default class Scene3 extends Phaser.Scene {
     create() {
 
 
+        if (!this.scene.isActive('SceneUI')) {
+            this.scene.launch('SceneUI');
+        }
+        this.scene.bringToTop('SceneUI');
+
+
+
+
+
         // input
         this.keys = this.input.keyboard.addKeys({
             up: 'W',
@@ -102,7 +111,7 @@ export default class Scene3 extends Phaser.Scene {
 
         this.npc1_x = 16 * 20;
         this.npc1_y = 16 * 79;
-        this.npc1 = this.physics.add.staticSprite(this.npc1_x, this.npc1_y, 'npc1').setScale(0.75);
+        this.npc1 = this.physics.add.staticSprite(this.npc1_x, this.npc1_y, 'npc1').setScale(1);
 
         this.physics.add.collider(this.player, this.npc1);
 
@@ -113,6 +122,117 @@ export default class Scene3 extends Phaser.Scene {
             this.uscita_y,
             'uscita'
         ).setOrigin(0.5).setScale(1);
+
+
+        // animazioni walking
+
+        if (!this.anims.exists('upwalk')) this.anims.create({
+            key: 'upwalk', // parola chiave
+            frames: [
+                { key: 'upwalk_frame1' }, // frames dell'animazione
+                { key: 'upwalk_frame2' },
+                { key: 'upwalk_frame1' },
+                { key: 'upwalk_frame3' }
+            ],
+            frameRate: 6, // quanti frame al secondo
+            repeat: -1  // loop infinito
+        });
+
+        if (!this.anims.exists('leftwalk')) this.anims.create({
+            key: 'leftwalk',
+            frames: [
+                { key: 'leftwalk_frame1' },
+                { key: 'leftwalk_frame2' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('rightwalk')) this.anims.create({
+            key: 'rightwalk',
+            frames: [
+                { key: 'rightwalk_frame1' },
+                { key: 'rightwalk_frame2' }
+            ],
+            frameRate: 6,
+            repeat: -1
+
+        });
+
+        if (!this.anims.exists('stand')) this.anims.create({
+            key: 'stand',
+            frames: [
+                { key: 'player' },
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('walk')) this.anims.create({
+            key: 'walk',
+            frames: [
+                { key: 'player' },
+                { key: 'downwalk_frame2' },
+                { key: 'downwalk_frame3' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+
+        if (!this.anims.exists('monster_upwalk')) this.anims.create({
+            key: 'monster_upwalk', // parola chiave
+            frames: [
+                { key: 'monster_player_upwalking_frame2' }, // frames dell'animazione
+                { key: 'monster_player_upwalking_frame1' },
+                { key: 'monster_player_upwalking_frame3' },
+                { key: 'monster_player_upwalking_frame1' }
+            ],
+            frameRate: 6, // quanti frame al secondo
+            repeat: -1  // loop infinito
+        });
+
+        if (!this.anims.exists('monster_downwalk')) this.anims.create({
+            key: 'monster_downwalk', // parola chiave
+            frames: [
+                { key: 'monster_player_downwalking_frame2' }, // frames dell'animazione
+                { key: 'monster_player_downwalking_frame1' },
+                { key: 'monster_player_downwalking_frame3' },
+                { key: 'monster_player_downwalking_frame1' }
+            ],
+            frameRate: 6, // quanti frame al secondo
+            repeat: -1  // loop infinito
+        });
+
+        if (!this.anims.exists('monster_rightwalk')) this.anims.create({
+            key: 'monster_rightwalk', // parola chiave
+            frames: [
+                { key: 'monster_player_rightwalking_frame1' }, // frames dell'animazione
+                { key: 'monster_player_rightwalking_frame2' },
+            ],
+            frameRate: 6, // quanti frame al secondo
+            repeat: -1  // loop infinito
+        });
+
+        if (!this.anims.exists('monster_leftwalk')) this.anims.create({
+            key: 'monster_leftwalk', // parola chiave
+            frames: [
+                { key: 'monster_player_leftwalking_frame1' }, // frames dell'animazione
+                { key: 'monster_player_leftwalking_frame2' },
+            ],
+            frameRate: 6, // quanti frame al secondo
+            repeat: -1  // loop infinito
+        });
+
+        if (!this.anims.exists('monster_stand')) this.anims.create({
+            key: 'monster_stand', // parola chiave
+            frames: [
+                { key: 'monster_player_downwalking_frame1' }, // frames dell'animazione
+            ],
+            frameRate: 6, // quanti frame al secondo
+            repeat: -1  // loop infinito
+        });
+
 
 
 
@@ -130,10 +250,6 @@ export default class Scene3 extends Phaser.Scene {
         if (!this.registry.get('is_player_human')) {
             this.player.setTexture('monster_player_downwalking_frame1');
         }
-
-
-
-
     }
 
     update() {
@@ -361,6 +477,9 @@ export default class Scene3 extends Phaser.Scene {
                 {
                     fontSize: '20px',
                     color: '#ffffff',
+                    fontFamily: 'Courier, monospace',
+                    stroke: '#000000',
+                    strokeThickness: 4,
                     align: 'center',
                     wordWrap: { width: 280 }
                 }
@@ -483,6 +602,9 @@ export default class Scene3 extends Phaser.Scene {
             {
                 fontSize: '20px',
                 color: '#ffffff',
+                fontFamily: 'Courier, monospace',
+                stroke: '#000000',
+                strokeThickness: 4,
                 align: 'center',
                 wordWrap: { width: this.scale.width - 80 }
             }

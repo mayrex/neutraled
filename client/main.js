@@ -17,6 +17,10 @@ import Scene12 from './scene12.js';
 import Scene13 from './scene13.js';
 import Scene14 from './scene14.js';
 import Scene15 from './scene15.js';
+import SceneGameOver from './scene_gameover.js';
+import SceneVictory from './scene_victory.js';
+import SceneGameWin from './scene_gamewin.js';
+import SceneUI from './scene_ui.js';
 
 
 
@@ -32,7 +36,7 @@ const config = {
   height: 600,
   pixelArt: true,
   backgroundColor: '#0a0a0f',
-  scene: [PreloadScene, MenuScene, WaitingRoomScene, GameScene, Scene2, Scene3, Scene4, Scene5, Scene6, Scene7, Scene8, Scene9, Scene10, Scene11, Scene12, Scene13, Scene14, Scene15],
+  scene: [PreloadScene, MenuScene, WaitingRoomScene, GameScene, Scene2, Scene3, Scene4, Scene5, Scene6, Scene7, Scene8, Scene9, Scene10, Scene11, Scene12, Scene13, Scene14, Scene15, SceneGameOver, SceneVictory, SceneGameWin, SceneUI],
   plugins: {
     global: [
       {
@@ -50,10 +54,10 @@ const config = {
       debug: false       // opzionale, utile per vedere collisioni
     }
   },
-    fps: {
-        target: 60,  // massimo FPS desiderato
-        forceSetTimeOut: true // se true, usa setTimeout invece di requestAnimationFrame
-    }
+  fps: {
+    target: 60,  // massimo FPS desiderato
+    forceSetTimeOut: true // se true, usa setTimeout invece di requestAnimationFrame
+  }
 
 };
 

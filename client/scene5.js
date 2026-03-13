@@ -42,6 +42,18 @@ export default class Scene5 extends Phaser.Scene {
 
     create() {
 
+
+        if (!this.scene.isActive('SceneUI')) {
+            this.scene.launch('SceneUI');
+        }
+        this.scene.bringToTop('SceneUI');
+
+
+
+
+        this.sound.stopAll();
+        this.sound.play('scene5_audio', { loop: true });
+
         //INPUT
         this.keys = this.input.keyboard.addKeys({
             up: 'W',
@@ -91,7 +103,7 @@ export default class Scene5 extends Phaser.Scene {
 
         // ===== ANIMAZIONI =====
 
-        this.anims.create({
+        if (!this.anims.exists('upwalk')) this.anims.create({
             key: 'upwalk',
             frames: [
                 { key: 'upwalk_frame1' },
@@ -103,7 +115,7 @@ export default class Scene5 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('leftwalk')) this.anims.create({
             key: 'leftwalk',
             frames: [
                 { key: 'leftwalk_frame1' },
@@ -113,7 +125,7 @@ export default class Scene5 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('rightwalk')) this.anims.create({
             key: 'rightwalk',
             frames: [
                 { key: 'rightwalk_frame1' },
@@ -123,7 +135,7 @@ export default class Scene5 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('walk')) this.anims.create({
             key: 'walk',
             frames: [
                 { key: 'player' },
@@ -134,9 +146,23 @@ export default class Scene5 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('stand')) this.anims.create({
             key: 'stand',
             frames: [{ key: 'player' }],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('enemy1_idle')) this.anims.create({
+            key: 'enemy1_idle',
+            frames: this.anims.generateFrameNumbers('enemy1', { start: 0, end: 5 }),
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('enemy2_idle')) this.anims.create({
+            key: 'enemy2_idle',
+            frames: this.anims.generateFrameNumbers('enemy2', { start: 0, end: 8 }),
             frameRate: 6,
             repeat: -1
         });
@@ -160,11 +186,17 @@ export default class Scene5 extends Phaser.Scene {
             this.enemy1.destroy();
         } else {
             this.eventTriggered1 = false;
+            if (this.enemy1.active) {
+                this.enemy1.play('enemy1_idle');
+            }
         }
         if (this.registry.get('enemy2_defeated')) {
             this.enemy2.destroy();
         } else {
             this.eventTriggered2 = false;
+            if (this.enemy2.active) {
+                this.enemy2.play('enemy2_idle');
+            }
         }
 
         if (!this.registry.get('is_player_human')) {
@@ -305,6 +337,9 @@ export default class Scene5 extends Phaser.Scene {
                 {
                     fontSize: '20px',
                     color: '#ffffff',
+                    fontFamily: 'Courier, monospace',
+                    stroke: '#000000',
+                    strokeThickness: 4,
                     align: 'center',
                     wordWrap: { width: 280 }
                 }
@@ -348,6 +383,9 @@ export default class Scene5 extends Phaser.Scene {
                 {
                     fontSize: '20px',
                     color: '#ffffff',
+                    fontFamily: 'Courier, monospace',
+                    stroke: '#000000',
+                    strokeThickness: 4,
                     align: 'center',
                     wordWrap: { width: 280 }
                 }

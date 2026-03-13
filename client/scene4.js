@@ -49,6 +49,10 @@ export default class Scene4 extends Phaser.Scene {
 
         this.hp_bar_green = null;
         this.hp_bar_red = null;
+        this.base_max_hp = 20;
+        this.max_hp = 20;
+        this.base_max_hp = 20;
+        this.max_hp = 20;
         this.hp = 20;
         this.hp_bar_x = 200;
         this.hp_bar_y = 550;
@@ -57,15 +61,18 @@ export default class Scene4 extends Phaser.Scene {
 
 
     }
-    preload() {
-
-        this.load.image('player', 'phasergamejam/assets/scene3/scene3_player.png');
-        this.load.image('npc', 'phasergamejam/assets/scene2/scene2_secret_character.png');
-        this.load.image('bullet1', 'phasergamejam/assets/scene4/scene4_bullet1.png');
-        this.load.image('player_shield', 'phasergamejam/assets/scene4/scene4_player_shield.png');
-    }
+    
 
     create() {
+
+        
+        if (!this.scene.isActive('SceneUI')) {
+            this.scene.launch('SceneUI');
+        }
+        this.scene.bringToTop('SceneUI');
+    
+    
+
 
 
         this.attacs_script();
@@ -102,7 +109,7 @@ export default class Scene4 extends Phaser.Scene {
         this.guide_sprite = this.add.sprite(
             this.guide_sprite_x,
             this.guide_sprite_y,
-            'npc'
+            'secret_character'
         ).setOrigin(0.5).setScale(2);
 
         this.player_sprite = this.physics.add.sprite(
@@ -117,7 +124,10 @@ export default class Scene4 extends Phaser.Scene {
             this.guide_text_y,
             this.guide_text_string[0], {
             fontSize: '30px',         // dimensione iniziale
-            color: '#ffffff',
+            color: '#ffffff', 
+            fontFamily: 'Courier, monospace',
+            stroke: '#000000',
+            strokeThickness: 4,
             align: 'center',
             wordWrap: { width: 250 } // padding interno
         }
@@ -140,6 +150,22 @@ export default class Scene4 extends Phaser.Scene {
         ).setDepth(1).setOrigin(0);
 
 
+        const pLevel = this.registry.get('player_level') || 1;
+        this.max_hp = this.base_max_hp * pLevel;
+        this.hp = this.max_hp;
+
+        this.hpTextUI = this.add.text(
+            this.hp_bar_x + 200, 
+            this.hp_bar_y + 15,
+            `${this.max_hp} / ${this.max_hp}`,
+            {
+                fontFamily: 'Courier, monospace',
+                fontSize: '18px',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 4
+            }
+        ).setOrigin(0.5).setDepth(4);
     }
 
     update() {
@@ -262,8 +288,14 @@ export default class Scene4 extends Phaser.Scene {
                 this.physics.add.overlap(this.bullet1, this.player_sprite, () => {
                     this.bullet1.destroy();
                     this.guide_text.setText(this.guide_text_string[1]);
-                    this.hp -= 2;
-                    this.hp_bar_green.setSize(20 * this.hp, 30);
+                    this.hp -= (2 * (this.registry.get('player_level') || 1));
+                    
+        const pct = this.hp / this.max_hp;
+        let cWidth = (20 * this.base_max_hp) * pct;
+        if(cWidth < 0) cWidth = 0;
+        this.hp_bar_green.setSize(cWidth, 30);
+        if(this.hpTextUI) this.hpTextUI.setText(`${this.hp>0?this.hp:0} / ${this.max_hp}`);
+    
 
 
                 });
@@ -271,8 +303,14 @@ export default class Scene4 extends Phaser.Scene {
                 this.physics.add.overlap(this.bullet2, this.player_sprite, () => {
                     this.bullet2.destroy();
                     this.guide_text.setText(this.guide_text_string[1]);
-                    this.hp -= 2;
-                    this.hp_bar_green.setSize(20 * this.hp, 30);
+                    this.hp -= (2 * (this.registry.get('player_level') || 1));
+                    
+        const pct = this.hp / this.max_hp;
+        let cWidth = (20 * this.base_max_hp) * pct;
+        if(cWidth < 0) cWidth = 0;
+        this.hp_bar_green.setSize(cWidth, 30);
+        if(this.hpTextUI) this.hpTextUI.setText(`${this.hp>0?this.hp:0} / ${this.max_hp}`);
+    
 
 
                 });
@@ -280,8 +318,14 @@ export default class Scene4 extends Phaser.Scene {
                 this.physics.add.overlap(this.bullet3, this.player_sprite, () => {
                     this.bullet3.destroy();
                     this.guide_text.setText(this.guide_text_string[1]);
-                    this.hp -= 2;
-                    this.hp_bar_green.setSize(20 * this.hp, 30);
+                    this.hp -= (2 * (this.registry.get('player_level') || 1));
+                    
+        const pct = this.hp / this.max_hp;
+        let cWidth = (20 * this.base_max_hp) * pct;
+        if(cWidth < 0) cWidth = 0;
+        this.hp_bar_green.setSize(cWidth, 30);
+        if(this.hpTextUI) this.hpTextUI.setText(`${this.hp>0?this.hp:0} / ${this.max_hp}`);
+    
 
 
                 });
@@ -289,8 +333,14 @@ export default class Scene4 extends Phaser.Scene {
                 this.physics.add.overlap(this.bullet4, this.player_sprite, () => {
                     this.bullet4.destroy();
                     this.guide_text.setText(this.guide_text_string[1]);
-                    this.hp -= 2;
-                    this.hp_bar_green.setSize(20 * this.hp, 30);
+                    this.hp -= (2 * (this.registry.get('player_level') || 1));
+                    
+        const pct = this.hp / this.max_hp;
+        let cWidth = (20 * this.base_max_hp) * pct;
+        if(cWidth < 0) cWidth = 0;
+        this.hp_bar_green.setSize(cWidth, 30);
+        if(this.hpTextUI) this.hpTextUI.setText(`${this.hp>0?this.hp:0} / ${this.max_hp}`);
+    
 
 
                 });

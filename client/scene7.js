@@ -13,6 +13,8 @@ export default class Scene7 extends Phaser.Scene {
 
         this.playerSpeed = 4;
 
+        this.base_max_hp = 20;
+        this.max_hp = 20;
         this.hp = 20;
         this.hpBarGreen = null;
         this.hpBarRed = null;
@@ -31,9 +33,21 @@ export default class Scene7 extends Phaser.Scene {
         this.enemyFrequency = 0.002;
     }
 
-
+    
 
     create() {
+
+        
+        if (!this.scene.isActive('SceneUI')) {
+            this.scene.launch('SceneUI');
+        }
+        this.scene.bringToTop('SceneUI');
+    
+    
+
+
+        this.sound.stopAll();
+        this.sound.play('scene7_audio', { loop: true });
 
         // INPUT
 
@@ -77,6 +91,16 @@ export default class Scene7 extends Phaser.Scene {
             'enemy2'
         ).setScale(3);
 
+        if (!this.anims.exists('enemy2_idle')) {
+            this.anims.create({
+                key: 'enemy2_idle',
+                frames: this.anims.generateFrameNumbers('enemy2', { start: 0, end: 8 }),
+                frameRate: 6,
+                repeat: -1
+            });
+        }
+        this.enemy.play('enemy2_idle');
+
         // BULLET GROUP
 
         this.bullets = this.physics.add.group();
@@ -113,7 +137,10 @@ export default class Scene7 extends Phaser.Scene {
             "corri verso i proiettili per pararli",
             {
                 fontSize: '28px',
-                color: '#ffffff',
+                color: '#ffffff', 
+            fontFamily: 'Courier, monospace',
+            stroke: '#000000',
+            strokeThickness: 4,
                 align: 'center',
                 wordWrap: { width: 250 }
             }
@@ -135,6 +162,26 @@ export default class Scene7 extends Phaser.Scene {
             0xff0000
         ).setOrigin(0).setDepth(1);
 
+
+        const pLevel = this.registry.get('player_level') || 1;
+        this.max_hp = this.base_max_hp * pLevel;
+        if(typeof this.hp !== 'undefined') this.hp = this.max_hp;
+        if(typeof this.player_hp !== 'undefined') this.player_hp = this.max_hp;
+
+        this.hpTextUI = this.add.text(
+            200 + (20 * this.base_max_hp)/2, 
+            550 + 15,
+            `${this.max_hp} / ${this.max_hp}`,
+            {
+                fontFamily: 'Courier, monospace',
+                fontSize: '18px',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 4
+            }
+        ).setOrigin(0.5).setDepth(4);
+    
+
         // ATTACK LOOP
 
         this.time.addEvent({
@@ -151,7 +198,7 @@ export default class Scene7 extends Phaser.Scene {
             callbackScope: this
         });
 
-        this.hp = 20;
+        
     }
 
     update(time) {
@@ -236,18 +283,24 @@ export default class Scene7 extends Phaser.Scene {
 
     damagePlayer() {
 
-    this.hp -= 2;
+    this.hp -= (2 * (this.registry.get('player_level') || 1));
 
     if (this.hp < 0) {
         this.hp = 0;
     }
 
-    this.hpBarGreen.setSize(20 * this.hp, 30);
+    
+        const pct = this.hp / this.max_hp;
+        let cWidth = (20 * this.base_max_hp) * pct;
+        if(cWidth < 0) cWidth = 0;
+        this.hpBarGreen.setSize(cWidth, 30);
+        if(this.hpTextUI) this.hpTextUI.setText(`${this.hp>0?this.hp:0} / ${this.max_hp}`);
+    
 
     if (this.hp === 0) {
 
         this.registry.set('enemy2_defeated', false);
-        this.scene.start('Scene5');
+        this.scene.start('SceneGameOver', { returnScene: 'Scene7' });
 
     }
 
@@ -404,7 +457,8 @@ export default class Scene7 extends Phaser.Scene {
     win_script() {
 
         if(this.hp>0){
-        this.registry.set('enemy2_defeated', true);
+        this.registry.set('enemy2_defeated', true); 
+        this.registry.set('player_level', (this.registry.get('player_level') || 1) + 1);
         this.scene.start('Scene5');
         }else{
             this.registry.set('enemy2_defeated',false);

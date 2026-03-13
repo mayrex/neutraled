@@ -25,6 +25,8 @@ export default class Scene11 extends Phaser.Scene {
         this.player_hp_bar_red = null;
         this.player_hp_bar_x = 200;
         this.player_hp_bar_y = 550;
+        this.base_max_hp = 20;
+        this.max_hp = 20;
         this.player_hp = 20;
 
         this.npc_hp_bar = null;
@@ -59,9 +61,18 @@ export default class Scene11 extends Phaser.Scene {
     }
 
 
-
+    
 
     create() {
+
+        
+        if (!this.scene.isActive('SceneUI')) {
+            this.scene.launch('SceneUI');
+        }
+        this.scene.bringToTop('SceneUI');
+    
+    
+
         this.player_hp = 20;
         this.npc_hp = 70;
 
@@ -146,8 +157,14 @@ export default class Scene11 extends Phaser.Scene {
 
                 bullet.destroy();
 
-                this.player_hp -= 2;
-                this.player_hp_bar_green.setSize(20 * this.player_hp, 30);
+                this.player_hp -= (2 * (this.registry.get('player_level') || 1));
+                
+        const pct = this.player_hp / this.max_hp;
+        let cWidth = (20 * this.base_max_hp) * pct;
+        if(cWidth < 0) cWidth = 0;
+        this.player_hp_bar_green.setSize(cWidth, 30);
+        if(this.hpTextUI) this.hpTextUI.setText(`${this.player_hp>0?this.player_hp:0} / ${this.max_hp}`);
+    
 
             },
             null,
@@ -157,9 +174,18 @@ export default class Scene11 extends Phaser.Scene {
         // player attacks
         this.player_attacks = this.physics.add.group();
 
+        if (!this.anims.exists('enemy4_idle')) {
+            this.anims.create({
+                key: 'enemy4_idle',
+                frames: this.anims.generateFrameNumbers('enemy4', { start: 0, end: 3 }),
+                frameRate: 6,
+                repeat: -1
+            });
+        }
 
         // npc
-        this.npc = this.physics.add.sprite(400, 130, 'enemy4_frame1').setDepth(3).setScale(2);
+        this.npc = this.physics.add.sprite(400, 130, 'enemy4').setDepth(3).setScale(2);
+        this.npc.play('enemy4_idle');
         this.physics.add.overlap(
             this.player_attacks,
             this.npc,
@@ -167,6 +193,7 @@ export default class Scene11 extends Phaser.Scene {
                 npc.destroy();
                 this.npc_hp -= 2;
                 this.npc_hp_bar_green.setSize(this.moltiplicatore_hp_bar_npc * this.npc_hp, 30);
+                if(this.npcHpTextUI) this.npcHpTextUI.setText(`${this.npc_hp>0?this.npc_hp:0} / 70`);
             },
             null,
             this
@@ -193,6 +220,26 @@ export default class Scene11 extends Phaser.Scene {
         ).setDepth(1).setOrigin(0);
 
 
+        const pLevel = this.registry.get('player_level') || 1;
+        this.max_hp = this.base_max_hp * pLevel;
+        if(typeof this.hp !== 'undefined') this.hp = this.max_hp;
+        if(typeof this.player_hp !== 'undefined') this.player_hp = this.max_hp;
+
+        this.hpTextUI = this.add.text(
+            200 + (20 * this.base_max_hp)/2, 
+            550 + 15,
+            `${this.max_hp} / ${this.max_hp}`,
+            {
+                fontFamily: 'Courier, monospace',
+                fontSize: '18px',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 4
+            }
+        ).setOrigin(0.5).setDepth(4);
+    
+
+
 
         this.npc_hp_bar_green = this.add.rectangle(
             this.npc_hp_bar_x,
@@ -210,6 +257,21 @@ export default class Scene11 extends Phaser.Scene {
             0xff0000
         ).setDepth(1).setOrigin(0);
 
+
+        this.npcHpTextUI = this.add.text(
+            this.npc_hp_bar_x + 200, 
+            this.npc_hp_bar_y + 15,
+            `${this.npc_hp} / ${this.npc_hp}`,
+            {
+                fontFamily: 'Courier, monospace',
+                fontSize: '18px',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 4
+            }
+        ).setOrigin(0.5).setDepth(4);
+        
+
         this.events.on('shutdown', () => {
 
             if (this.attack_timer) {
@@ -217,11 +279,15 @@ export default class Scene11 extends Phaser.Scene {
             }
 
         });
-
-
     }
 
     update() {
+        if (this.player_hp <= 0) {
+            this.scene.stop();
+            this.scene.start('SceneGameOver', { returnScene: 'Scene11' });
+            return;
+        }
+
 
         this.handleNpcOscillation();
         this.highlightClosestBullet();
@@ -277,7 +343,8 @@ export default class Scene11 extends Phaser.Scene {
             }
             this.scene.start('Scene10');
             this.scene.stop();
-            this.registry.set('scene11_npc_defeated', true);
+            this.registry.set('scene11_npc_defeated', true); 
+            this.registry.set('player_level', (this.registry.get('player_level') || 1) + 1);
 
         }
     }

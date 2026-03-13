@@ -33,9 +33,18 @@ export default class Scene10 extends Phaser.Scene {
     }
 
 
-
+    
 
     create() {
+
+        
+        if (!this.scene.isActive('SceneUI')) {
+            this.scene.launch('SceneUI');
+        }
+        this.scene.bringToTop('SceneUI');
+    
+    
+
 
         //INPUT
         this.keys = this.input.keyboard.addKeys({
@@ -69,7 +78,7 @@ export default class Scene10 extends Phaser.Scene {
 
         // NPC
 
-        this.npc = this.physics.add.staticSprite(this.npc_x, this.npc_y, 'enemy4_frame1').setFlipX(true);
+        this.npc = this.physics.add.staticSprite(this.npc_x, this.npc_y, 'enemy4').setFlipX(true);
 
 
 
@@ -84,7 +93,7 @@ export default class Scene10 extends Phaser.Scene {
 
         // ===== ANIMAZIONI =====
 
-        this.anims.create({
+        if (!this.anims.exists('upwalk')) this.anims.create({
             key: 'upwalk',
             frames: [
                 { key: 'upwalk_frame1' },
@@ -96,7 +105,7 @@ export default class Scene10 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('leftwalk')) this.anims.create({
             key: 'leftwalk',
             frames: [
                 { key: 'leftwalk_frame1' },
@@ -106,7 +115,7 @@ export default class Scene10 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('rightwalk')) this.anims.create({
             key: 'rightwalk',
             frames: [
                 { key: 'rightwalk_frame1' },
@@ -116,7 +125,7 @@ export default class Scene10 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('walk')) this.anims.create({
             key: 'walk',
             frames: [
                 { key: 'player' },
@@ -127,9 +136,16 @@ export default class Scene10 extends Phaser.Scene {
             repeat: -1
         });
 
-        this.anims.create({
+        if (!this.anims.exists('stand')) this.anims.create({
             key: 'stand',
             frames: [{ key: 'player' }],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('enemy4_idle')) this.anims.create({
+            key: 'enemy4_idle',
+            frames: this.anims.generateFrameNumbers('enemy4', { start: 0, end: 3 }),
             frameRate: 6,
             repeat: -1
         });
@@ -141,12 +157,14 @@ export default class Scene10 extends Phaser.Scene {
             this.player.y = this.registry.get('scene10_player_y');
         } else {
             this.event_triggered = false;
+            if (this.npc.active) {
+                this.npc.play('enemy4_idle');
+            }
         }
 
         if (!this.registry.get('is_player_human')) {
             this.player.setTexture('monster_player_downwalking_frame1');
         }
-
     }
 
     update() {
@@ -268,7 +286,10 @@ export default class Scene10 extends Phaser.Scene {
                 this.guide_text_string[this.dialogueIndex],
                 {
                     fontSize: '20px',
-                    color: '#ffffff',
+                    color: '#ffffff', 
+            fontFamily: 'Courier, monospace',
+            stroke: '#000000',
+            strokeThickness: 4,
                     align: 'center',
                     wordWrap: { width: 280 }
                 }

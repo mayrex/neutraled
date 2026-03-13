@@ -1,50 +1,70 @@
-export default class PreloadScene extends Phaser.Scene {
-
+export default class Preload extends Phaser.Scene {
     constructor() {
-        super('PreloadScene');
+        super('Preload');
     }
 
     preload() {
-        // ── Scene 1 (Menu) ──────────────────────────────────────────────────
+        // Grafica di caricamento
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+
+        this.add.text(width / 2, height / 2 - 50, 'Caricamento Assets...', {
+            fontFamily: '"Press Start 2P", Courier, monospace',
+            fontSize: '24px',
+            fill: '#ffffff'
+        }).setOrigin(0.5);
+
+        const progressBar = this.add.graphics();
+        const progressBox = this.add.graphics();
+        progressBox.fillStyle(0x222222, 0.8);
+        progressBox.fillRect(width / 2 - 160, height / 2, 320, 50);
+
+        const percentText = this.add.text(width / 2, height / 2 + 25, '0%', {
+            fontFamily: '"Press Start 2P", Courier, monospace',
+            fontSize: '18px',
+            fill: '#ffffff'
+        }).setOrigin(0.5);
+
+        this.load.on('progress', (value) => {
+            percentText.setText(parseInt(value * 100) + '%');
+            progressBar.clear();
+            progressBar.fillStyle(0xffffff, 1);
+            progressBar.fillRect(width / 2 - 150, height / 2 + 10, 300 * value, 30);
+        });
+
+        this.load.on('complete', () => {
+            progressBar.destroy();
+            progressBox.destroy();
+            percentText.destroy();
+        });
+
+        // --------------------------------------------------------
+        // TUTTI GLI ASSET DEL GIOCO (Estratti da Scene 1 a 15)
+        // --------------------------------------------------------
+
+        // === SCENE 1 ===
         this.load.image('background_sky', './scene1/scene1_background_sky.png');
-        this.load.image('title', './scene1/scene1_title.png');
         for (let i = 1; i <= 10; i++) {
             this.load.image(`background_cloud${i}`, `./scene1/scene1_background_cloud${i}.png`);
         }
         for (let i = 1; i <= 3; i++) {
             this.load.image(`secret_character_frame${i}`, `./scene1/scene1_secret_character_frame${i}.png`);
-        }
-        for (let i = 1; i <= 3; i++) {
             this.load.image(`play_button_frame${i}`, `./scene1/scene1_play_button_frame${i}.png`);
-        }
-        for (let i = 1; i <= 3; i++) {
             this.load.image(`option_button_frame${i}`, `./scene1/scene1_option_button_frame${i}.png`);
         }
+        this.load.image('title', './scene1/scene1_title.png');
 
-        // ── Scene 2 (Intro) ─────────────────────────────────────────────────
+        // === SCENE 2 ===
         this.load.image('space_background_frame1', './scene2/scene2_space_background_frame1.png');
         this.load.image('space_background_frame2', './scene2/scene2_space_background_frame2.png');
         this.load.image('secret_character', './scene2/scene2_secret_character.png');
         this.load.audio('secret_character_talking_sound', './scene2/scene2_secret_character_talking_sound.mp3');
-        // Immagini narrative numerate
-        // Spritesheet parlante (5°) – animato
-        this.load.spritesheet('scene2_sprite5', './scene2/carousel/scene2_5.jpeg', {
-            frameWidth: 344,
-            frameHeight: 384
-        });
-        // Immagini carousel (riempiono la metà superiore dello schermo)
-        for (let i = 1; i <= 5; i++) {
-            this.load.image(`scene2_${i}`, `./scene2/carousel/scene2_${i}.jpeg`);
-        }
 
-        // ── Scene 3 (Castello – tilemap + player umano) ─────────────────────
+        // === SCENE 3 ===
         this.load.tilemapTiledJSON('map', './scene3/tile_map/map.json');
         this.load.image('tiles', './scene3/tile_map/spritesheet.png');
         this.load.image('player', './scene3/scene3_player.png');
-        this.load.image('npc1', './scene3/player.png');
-        this.load.image('uscita', './scene3/scene3_uscita.png');
-
-        // Player umano – frame animazioni camminata
+        this.load.image('npc1', './scene2/scene2_secret_character.png');
         this.load.image('upwalk_frame1', './scene3/scene3_upwalking_frame1.png');
         this.load.image('upwalk_frame2', './scene3/scene3_upwalking_frame2.png');
         this.load.image('upwalk_frame3', './scene3/scene3_upwalking_frame3.png');
@@ -54,32 +74,10 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image('rightwalk_frame2', './scene3/scene3_rightwalking_frame2.png');
         this.load.image('downwalk_frame2', './scene3/scene3_downwalking_frame2.png');
         this.load.image('downwalk_frame3', './scene3/scene3_downwalking_frame3.png');
+        this.load.image('uscita', './scene3/scene3_uscita.png');
 
-        // ── Scene 4 (Tutorial battaglia) ────────────────────────────────────
-        this.load.image('bullet', './scene4/scene4_bullet1.png');
-        this.load.image('bullet1', './scene4/scene4_bullet1.png');
-        this.load.image('attack', './scene4/scene4_bullet1.png');
-        this.load.image('bullets', './scene4/scene4_bullet1.png');
-        this.load.image('shield', './scene4/scene4_player_shield.png');
-        this.load.image('player_shield', './scene4/scene4_player_shield.png');
-        this.load.image('player_soul', './scene4/scene4_player_shield.png');
-
-        // ── Scene 5 (Villaggio – tilemap + nemici) ──────────────────────────
-        this.load.tilemapTiledJSON('map1', './scene5/tile_map/map.json');
-        this.load.image('tiles1', './scene5/tile_map/spritesheet.png');
-        this.load.image('enemy1', './scene5/npc1_frame1.png');
-        this.load.image('enemy2', './scene5/enemy2_frame1.png');
-
-        // ── Scene 8 (Dungeon – tilemap + mostro player + enemy3) ────────────
-        this.load.tilemapTiledJSON('map2', './scene8/tile_map/map.json');
-        this.load.image('tiles2', './scene8/tile_map/spritesheet.png');
-        this.load.image('monster', './scene8/monster_player.png');
+        // Monster Player Animations
         this.load.image('monster_player_stand_frame', './scene8/monster_player.png');
-        this.load.image('npc_monster', './scene8/monster_player.png');
-        this.load.image('monster_preview', './scene8/monster_player.png');
-        this.load.image('enemy3_frame1', './scene8/enemy3_frame1.png');
-
-        // Mostro player – frame animazioni camminata
         this.load.image('monster_player_upwalking_frame1', './scene8/monster_player_upwalking_frame1.png');
         this.load.image('monster_player_upwalking_frame2', './scene8/monster_player_upwalking_frame2.png');
         this.load.image('monster_player_upwalking_frame3', './scene8/monster_player_upwalking_frame3.png');
@@ -91,162 +89,82 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image('monster_player_leftwalking_frame1', './scene8/monster_player_left_frame1.png');
         this.load.image('monster_player_leftwalking_frame2', './scene8/monster_player_left_frame2.png');
 
-        // ── Scene 10 (Torre – tilemap + enemy4) ─────────────────────────────
+        // Duplicate names to match direct calls in Scene 15:
+        this.load.image('monster_player_right_frame1', './scene8/monster_player_right_frame1.png');
+        this.load.image('monster_player_right_frame2', './scene8/monster_player_right_frame2.png');
+        this.load.image('monster_player_left_frame1', './scene8/monster_player_left_frame1.png');
+        this.load.image('monster_player_left_frame2', './scene8/monster_player_left_frame2.png');
+
+        // === SCENE 4 ===
+        this.load.image('bullet1', './scene4/scene4_bullet1.png');
+        this.load.image('player_shield', './scene4/scene4_player_shield.png');
+
+        // === SCENE 5 ===
+        this.load.tilemapTiledJSON('map1', './scene5/tile_map/map.json');
+        this.load.image('tiles1', './scene5/tile_map/spritesheet.png');
+        this.load.spritesheet('enemy1', './scene5/npc1_animation.png', { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('enemy2', './scene5/enemy2_animation.png', { frameWidth: 32, frameHeight: 32 });
+        this.load.audio('scene5_audio', './sounds/scene5_soundtrack.mp3');
+
+        // === SCENE 6 & 7 ===
+        this.load.image('bullet', './scene4/scene4_bullet1.png');
+        this.load.image('shield', './scene4/scene4_player_shield.png');
+        this.load.audio('scene6_audio', './sounds/scene6_fightsoundtrack.mp3');
+        this.load.audio('scene7_audio', './sounds/scene7_fightsoundtrack.mp3');
+
+        // === SCENE 8 ===
+        this.load.tilemapTiledJSON('map2', './scene8/tile_map/map.json');
+        this.load.image('tiles2', './scene8/tile_map/spritesheet.png');
+        this.load.image('enemy3_frame1', './scene8/enemy3_frame1.png');
+
+        // === SCENE 10 ===
         this.load.tilemapTiledJSON('map3', './scene10/tile_map/map.json');
         this.load.image('tiles3', './scene10/tile_map/spritesheet.png');
-        this.load.image('enemy4_frame1', './scene10/enemy4_frame1.png');
+        this.load.spritesheet('enemy4', './scene10/enemy4_animation.png', { frameWidth: 32, frameHeight: 32 });
 
-        // ── Scene 11 (Boss 1 – slashes) ─────────────────────────────────────
+        // === SCENE 11 & 13 ===
+        this.load.image('attack', './scene4/scene4_bullet1.png');
         this.load.image('player_slash', './scene11/player_slash.png');
+        this.load.image('player_soul', './scene4/scene4_player_shield.png');
 
-        // ── Scene 12 (Corridoio – tilemap + enemy5) ─────────────────────────
+        // === SCENE 12 ===
         this.load.tilemapTiledJSON('map4', './scene12/tile_map/map.json');
         this.load.image('tiles4', './scene12/tile_map/spritesheet.png');
         this.load.image('enemy5_frame1', './scene12/enemy5_frame1.png');
-
-        // ── Scene 14 (Piano finale – tilemap) ───────────────────────────────
+        this.load.spritesheet('scene2_sprite5', './scene2/carousel/scene2_5.jpeg', {
+            frameWidth: 344,
+            frameHeight: 384
+        });
+        // Immagini carousel (riempiono la metà superiore dello schermo)
+        for (let i = 1; i <= 5; i++) {
+            this.load.image(`scene2_${i}`, `./scene2/carousel/scene2_${i}.jpeg`);
+        }
+        // === SCENE 14 ===
         this.load.tilemapTiledJSON('map5', './scene14/tile_map/map.json');
         this.load.image('tiles5', './scene14/tile_map/spritesheet.png');
+        this.load.audio('scene14_audio', './sounds/scene14_soundtrack.mp3');
 
-        // ── Scene 15 (Boss finale – Tifone) ─────────────────────────────────
+        // === SCENE 15 ===
         this.load.image('background', './scene15/background.png');
         this.load.image('background_wc', './scene15/background_with_castle.png');
+        this.load.image('sky', './scene1/scene1_background_sky.png');
         this.load.image('tifone_frame1', './scene15/tifone_frame1.png');
+        this.load.image('bullets', './scene4/scene4_bullet1.png');
+        this.load.image('tifone_fulmine', './scene15/tifone_fulmine.png');
+        this.load.image('tifone_laser', './scene15/tifone_laser.png');
+        this.load.spritesheet('tifone_onde_laterali_frame1', './scene15/onde_laterali_animation.png', { frameWidth: 48, frameHeight: 28 });
+        this.load.image('tifone_onda_frontale', './scene15/tifone_onda_frontale.png');
+        this.load.spritesheet('tifone_tornado', './scene15/tifone_tornado_animation.png', { frameWidth: 36, frameHeight: 50 });
+        this.load.audio('scene15_audio', './sounds/scene15_fight_soundtrack.mp3');
 
-        // ── GameScene Multiplayer ────────────────────────────────────────────
-        this.load.image('plains_bg', './plain/Map test final.png');
-        this.load.image('human_preview', './scene3/scene3_player.png');
-        this.load.image('npc', './scene3/player.png');
-
-        // ── Evoluzione (trasformazione) ──────────────────────────────────────
-        this.load.spritesheet('evoluzione', './evoluzione/evoluzione.png', {
-            frameWidth: 64,
-            frameHeight: 64
-        });
+        // === OGGETTI AMBIENTALI ===
+        this.load.image('Cespuglio', './oggetti ambientali/Cespuglio.png');
+        this.load.image('ABunchOfFlowers', './oggetti ambientali/ABunchOfFlowers.png');
+        this.load.image('Teschio', './oggetti ambientali/Teschio.png');
+        this.load.image('chebellaLANTERNA', './oggetti ambientali/chebellaLANTERNA.png');
     }
 
     create() {
-        // ── Animazioni player umano ──────────────────────────────────────────
-        this.anims.create({
-            key: 'upwalk',
-            frames: [
-                { key: 'upwalk_frame1' },
-                { key: 'upwalk_frame2' },
-                { key: 'upwalk_frame1' },
-                { key: 'upwalk_frame3' }
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'leftwalk',
-            frames: [
-                { key: 'leftwalk_frame1' },
-                { key: 'leftwalk_frame2' }
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'rightwalk',
-            frames: [
-                { key: 'rightwalk_frame1' },
-                { key: 'rightwalk_frame2' }
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'stand',
-            frames: [{ key: 'player' }],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'walk',
-            frames: [
-                { key: 'player' },
-                { key: 'downwalk_frame2' },
-                { key: 'downwalk_frame3' }
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        // ── Animazioni player mostro ─────────────────────────────────────────
-        this.anims.create({
-            key: 'monster_upwalk',
-            frames: [
-                { key: 'monster_player_upwalking_frame2' },
-                { key: 'monster_player_upwalking_frame1' },
-                { key: 'monster_player_upwalking_frame3' },
-                { key: 'monster_player_upwalking_frame1' }
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'monster_downwalk',
-            frames: [
-                { key: 'monster_player_downwalking_frame2' },
-                { key: 'monster_player_downwalking_frame1' },
-                { key: 'monster_player_downwalking_frame3' },
-                { key: 'monster_player_downwalking_frame1' }
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'monster_rightwalk',
-            frames: [
-                { key: 'monster_player_rightwalking_frame1' },
-                { key: 'monster_player_rightwalking_frame2' }
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'monster_leftwalk',
-            frames: [
-                { key: 'monster_player_leftwalking_frame1' },
-                { key: 'monster_player_leftwalking_frame2' }
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'monster_stand',
-            frames: [{ key: 'monster_player_downwalking_frame1' }],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        // ── Animazioni scena 2 (sky) ─────────────────────────────────────────
-        this.anims.create({
-            key: 'skyanimation',
-            frames: [
-                { key: 'space_background_frame1' },
-                { key: 'space_background_frame2' }
-            ],
-            frameRate: 2,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'scene2_talk',
-            frames: this.anims.generateFrameNumbers('scene2_sprite5', { start: 0, end: 7 }),
-            frameRate: 6,
-            repeat: -1
-        });
-
         this.anims.create({
             key: 'flymoving',
             frames: [
@@ -259,7 +177,6 @@ export default class PreloadScene extends Phaser.Scene {
             repeat: -1
         });
 
-        // ── Animazioni bottoni menu ──────────────────────────────────────────
         this.anims.create({
             key: 'play_button_pressed',
             frames: [
@@ -303,40 +220,12 @@ export default class PreloadScene extends Phaser.Scene {
             frameRate: 4,
             repeat: 0
         });
-
-        // ── Animazione trasformazione ────────────────────────────────────────
         this.anims.create({
-            key: 'evoluzione_anim',
-            frames: this.anims.generateFrameNumbers('evoluzione', { start: 0, end: 20 }),
-            frameRate: 14,
-            repeat: 0,
-            hideOnComplete: true
+            key: 'scene2_talk',
+            frames: this.anims.generateFrameNumbers('scene2_sprite5', { start: 0, end: 7 }),
+            frameRate: 6,
+            repeat: -1
         });
-
-        // ── Texture programmatiche collezionabili multiplayer ────────────────
-        const gfx = this.add.graphics();
-
-        gfx.fillStyle(0x2255dd, 1);
-        gfx.fillCircle(16, 16, 14);
-        gfx.fillStyle(0x88bbff, 1);
-        gfx.fillCircle(10, 10, 5);
-        gfx.generateTexture('collectible_human', 32, 32);
-        gfx.clear();
-
-        gfx.fillStyle(0x881133, 1);
-        gfx.fillCircle(16, 16, 14);
-        gfx.fillStyle(0xff6644, 1);
-        gfx.fillCircle(10, 10, 5);
-        gfx.generateTexture('collectible_monster', 32, 32);
-        gfx.clear();
-
-        gfx.fillStyle(0xccaa00, 1);
-        gfx.fillCircle(16, 16, 14);
-        gfx.fillStyle(0xffee88, 1);
-        gfx.fillCircle(10, 10, 5);
-        gfx.generateTexture('collectible_both', 32, 32);
-        gfx.destroy();
-
         this.scene.start('MenuScene');
     }
 }
