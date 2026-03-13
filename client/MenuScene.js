@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import * as Colyseus from 'colyseus.js';
 
-const SERVER_URL = 'ws://10.106.157.215:2567';
+const SERVER_URL = 'ws://localhost:2567';
 
 export default class MenuScene extends Phaser.Scene {
     constructor() {
@@ -44,6 +44,7 @@ export default class MenuScene extends Phaser.Scene {
         this.createClouds();
         this.createSecretCharacter();
         this.createUI();
+        this.sound.play("menu", { loop: true });
     }
     update() {
         this.updateClouds();
