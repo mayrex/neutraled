@@ -24,7 +24,7 @@ export default class Preload extends Phaser.Scene {
             fontSize: '18px',
             fill: '#ffffff'
         }).setOrigin(0.5);
- 
+
         this.load.on('progress', (value) => {
             percentText.setText(parseInt(value * 100) + '%');
             progressBar.clear();
@@ -57,8 +57,10 @@ export default class Preload extends Phaser.Scene {
         this.load.spritesheet('mostro2', './scene1/Mostro2.png', { frameWidth: 256, frameHeight: 256 });
         this.load.spritesheet('mostro3', './scene1/Mostro3.png', { frameWidth: 256, frameHeight: 256 });
         this.load.spritesheet('storia_btn', './scene1/Storia bottone.png', { frameWidth: 64, frameHeight: 64 });
-        this.load.spritesheet('multi_btn', './scene1/Multiplayer Bottone.png', { frameWidth: 64, frameHeight: 64 });
+        this.load.spritesheet('multi_btn', './scene1/Multiplayer.png', { frameWidth: 64, frameHeight: 64 });
         this.load.spritesheet('crediti_btn', './scene1/Crediti Bottone.png', { frameWidth: 64, frameHeight: 64 });
+
+        this.load.audio('menu_music', './scene1/menu.mp3');
 
         // === SCENE 2 ===
         this.load.image('space_background_frame1', './scene2/scene2_space_background_frame1.png');
@@ -163,25 +165,11 @@ export default class Preload extends Phaser.Scene {
         this.load.spritesheet('tifone_tornado', './scene15/tifone_tornado_animation.png', { frameWidth: 36, frameHeight: 50 });
         this.load.audio('scene15_audio', './sounds/scene15_fight_soundtrack.mp3');
 
+        // === OGGETTI AMBIENTALI ===
         this.load.image('Cespuglio', './oggetti ambientali/Cespuglio.png');
         this.load.image('ABunchOfFlowers', './oggetti ambientali/ABunchOfFlowers.png');
         this.load.image('Teschio', './oggetti ambientali/Teschio.png');
         this.load.image('chebellaLANTERNA', './oggetti ambientali/chebellaLANTERNA.png');
-
-        // === MULTIPLAYER ASSETS ===
-        this.load.tilemapTiledJSON('mp_map', './multiplayer/Tilemap mp.tmj');
-        this.load.image('mp_tiles', './multiplayer/ezgif-819d516e06a53a6e (1) (1).png');
-        this.load.image('monster', './scene8/monster_player.png');
-        this.load.image('human_preview', './scene3/scene3_player.png');
-        this.load.image('monster_preview', './scene8/monster_player.png');
-        
-        // Collectibles used in GameScene.js
-        this.load.image('collectible_human', './oggetti ambientali/ABunchOfFlowers.png');
-        this.load.image('collectible_monster', './oggetti ambientali/Teschio.png');
-        this.load.image('collectible_both', './oggetti ambientali/Cespuglio.png');
-
-        // Transformation
-        this.load.spritesheet('evoluzione', './evoluzione/evoluzione.png', { frameWidth: 64, frameHeight: 64 });
     }
 
     create() {
@@ -265,44 +253,34 @@ export default class Preload extends Phaser.Scene {
             repeat: -1
         });
 
-        // === GLOBAL ANIMATIONS ===
+        this.showStartPrompt();
+    }
 
-        // Transformation
-        if (!this.anims.exists('evoluzione_anim')) {
-            this.anims.create({
-                key: 'evoluzione_anim',
-                frames: this.anims.generateFrameNumbers('evoluzione', { start: 0, end: 20 }),
-                frameRate: 15,
-                repeat: 0
-            });
-        }
+    showStartPrompt() {
+        const W = 800, H = 600;
 
-        // Human Animations (Global)
-        const createHumanAnim = (key, frames, rate = 6) => {
-            if (!this.anims.exists(key)) {
-                this.anims.create({ key, frames: frames.map(k => ({ key: k })), frameRate: rate, repeat: -1 });
-            }
-        };
+        const overlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.6).setDepth(10);
 
-        createHumanAnim('upwalk', ['upwalk_frame1', 'upwalk_frame2', 'upwalk_frame1', 'upwalk_frame3']);
-        createHumanAnim('leftwalk', ['leftwalk_frame1', 'leftwalk_frame2']);
-        createHumanAnim('rightwalk', ['rightwalk_frame1', 'rightwalk_frame2']);
-        createHumanAnim('walk', ['player', 'downwalk_frame2', 'downwalk_frame3']);
-        createHumanAnim('stand', ['player']);
+        const label = this.add.text(W / 2, H / 2, 'CLICK PER INIZIARE', {
+            fontFamily: 'monospace',
+            fontSize: '28px',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5).setDepth(11);
 
-        // Monster Animations (Global)
-        const createMonsterAnim = (key, frames, rate = 6) => {
-            if (!this.anims.exists(key)) {
-                this.anims.create({ key, frames: frames.map(k => ({ key: k })), frameRate: rate, repeat: -1 });
-            }
-        };
+        this.tweens.add({
+            targets: label,
+            alpha: 0,
+            duration: 700,
+            yoyo: true,
+            repeat: -1
+        });
 
-        createMonsterAnim('monster_upwalk', ['monster_player_upwalking_frame1', 'monster_player_upwalking_frame2', 'monster_player_upwalking_frame3']);
-        createMonsterAnim('monster_leftwalk', ['monster_player_left_frame1', 'monster_player_left_frame2']);
-        createMonsterAnim('monster_rightwalk', ['monster_player_right_frame1', 'monster_player_right_frame2']);
-        createMonsterAnim('monster_downwalk', ['monster_player_downwalking_frame1', 'monster_player_downwalking_frame2', 'monster_player_downwalking_frame3']);
-        createMonsterAnim('monster_stand', ['monster_player_stand_frame']);
-
-        this.scene.start('MenuScene');
+        this.input.once('pointerdown', () => {
+            overlay.destroy();
+            label.destroy();
+            this.scene.start('MenuScene');
+        });
     }
 }
