@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import * as Colyseus from 'colyseus.js';
 
+//const SERVER_URL = 'ws://10.155.96.20:2567';
 const SERVER_URL = 'ws://localhost:2567';
 
 export default class MenuScene extends Phaser.Scene {

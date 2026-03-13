@@ -15,7 +15,7 @@ const MONSTER_NAMES = ['Gothmog', 'Zorblax', 'Mordrok', 'Xythar', 'Gruumsh', 'Vo
 export class GameRoom extends Room {
     onCreate(options) {
         this.setState(new GameState());
-        this.maxClients = 4; // Keep at 2 players as requested
+        this.maxClients = 2; // Keep at 2 players as requested
 
         console.log(`[GameRoom] Room created: ${this.roomId}`);
 
@@ -76,8 +76,8 @@ export class GameRoom extends Room {
             const player = this.state.players.get(client.sessionId);
             if (!player || !this.state.started) return;
 
-            // Reset the evolution when they transform
-            if (player.evolution >= 100) {
+            // Reset the evolution when they transform (tolleranza a 95 come nel client)
+            if (player.evolution >= 95) {
                 player.evolution = 0;
                 player.role = player.role === 'human' ? 'monster' : 'human';
             } else {
@@ -201,7 +201,7 @@ export class GameRoom extends Room {
                 npc.x = WORLD_MARGIN + Math.random() * (WORLD_WIDTH - WORLD_MARGIN * 2);
                 npc.y = WORLD_MARGIN + Math.random() * (WORLD_HEIGHT - WORLD_MARGIN * 2);
                 npc.role = role;
-                npc.hp = 100;
+                npc.hp = 40; // Vita molto più bassa (prima 100)
                 this.state.npcs.set(npc.id, npc);
             }
         };
@@ -235,6 +235,7 @@ export class GameRoom extends Room {
                 npc.x = WORLD_MARGIN + Math.random() * (WORLD_WIDTH - WORLD_MARGIN * 2);
                 npc.y = WORLD_MARGIN + Math.random() * (WORLD_HEIGHT - WORLD_MARGIN * 2);
                 npc.role = 'human';
+                npc.hp = 40;
                 this.state.npcs.set(npc.id, npc);
                 humCount++;
             }
@@ -244,6 +245,7 @@ export class GameRoom extends Room {
                 npc.x = WORLD_MARGIN + Math.random() * (WORLD_WIDTH - WORLD_MARGIN * 2);
                 npc.y = WORLD_MARGIN + Math.random() * (WORLD_HEIGHT - WORLD_MARGIN * 2);
                 npc.role = 'monster';
+                npc.hp = 40;
                 this.state.npcs.set(npc.id, npc);
                 monCount++;
             }

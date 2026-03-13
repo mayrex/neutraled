@@ -277,6 +277,11 @@ export default class GameScene extends Phaser.Scene {
         this.updateModeVisibility();
         this.updateModeText();
 
+        // Tinta mappa: scura in modalità mostro fin da subito
+        if (this.currentMode === 'monster') {
+            this.backgroundLayer.setTint(0x4a4e69);
+        }
+
         // Overlap collezionabili (solo dopo che lo sprite locale esiste)
         this.physics.add.overlap(
           this.localPlayerSprite, this.humanObjects,
@@ -665,12 +670,21 @@ export default class GameScene extends Phaser.Scene {
     try {
       // Sprite dell'animazione (64x64 * 3 = 192x192)
       const animSprite = this.add.sprite(px, py, 'evoluzione').setDepth(20).setScale(3);
-      animSprite.play('evoluzione_anim');
-
-      animSprite.on('animationcomplete', () => {
-        animSprite.destroy();
+      
+      let isCompleted = false;
+      const completeTransform = () => {
+        if (isCompleted) return;
+        isCompleted = true;
+        if (animSprite) animSprite.destroy();
         this.finishTransform();
-      });
+      };
+
+      animSprite.on('animationcomplete', completeTransform);
+      animSprite.play('evoluzione_anim');
+      
+      // Fallback sicuro per sbloccare il giocatore se l'animazione si frizza
+      this.time.delayedCall(1500, completeTransform);
+
     } catch (e) {
       console.error("Errore durante l'animazione di trasformazione:", e);
       this.finishTransform(); // Forza il completamento se l'animazione fallisce
@@ -725,16 +739,34 @@ export default class GameScene extends Phaser.Scene {
 
     remoteObj.sprite.setVisible(false);
 
-    const animSprite = this.add.sprite(px, py, 'evoluzione').setDepth(20).setScale(3);
-    animSprite.play('evoluzione_anim');
+    try {
+      const animSprite = this.add.sprite(px, py, 'evoluzione').setDepth(20).setScale(3);
+      
+      let isCompleted = false;
+      const completeRemote = () => {
+        if (isCompleted) return;
+        isCompleted = true;
+        if (animSprite) animSprite.destroy();
+        const newTexture = mode === 'monster' ? 'monster' : 'player';
+        if (remoteObj.sprite && remoteObj.sprite.active) {
+            remoteObj.sprite.setTexture(newTexture);
+            remoteObj.sprite.setVisible(true);
+            remoteObj.sprite.play(mode === 'monster' ? 'monster_stand' : 'stand');
+        }
+      };
 
-    animSprite.on('animationcomplete', () => {
-      animSprite.destroy();
+      animSprite.on('animationcomplete', completeRemote);
+      animSprite.play('evoluzione_anim');
+      this.time.delayedCall(1500, completeRemote);
+
+    } catch (e) {
       const newTexture = mode === 'monster' ? 'monster' : 'player';
-      remoteObj.sprite.setTexture(newTexture);
-      remoteObj.sprite.setVisible(true);
-      remoteObj.sprite.play(mode === 'monster' ? 'monster_stand' : 'stand');
-    });
+      if (remoteObj.sprite && remoteObj.sprite.active) {
+          remoteObj.sprite.setTexture(newTexture);
+          remoteObj.sprite.setVisible(true);
+          remoteObj.sprite.play(mode === 'monster' ? 'monster_stand' : 'stand');
+      }
+    }
   }
 
   // ─── Oggetti Mappa / Collezionabili ──────────────────────────────────────
