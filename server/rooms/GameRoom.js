@@ -17,6 +17,10 @@ export class GameRoom extends Room {
         this.setState(new GameState());
         this.maxClients = 2; // Keep at 2 players as requested
 
+        // Create a base random spawn point for the room
+        this.baseSpawnX = WORLD_MARGIN + Math.random() * (WORLD_WIDTH - WORLD_MARGIN * 2);
+        this.baseSpawnY = WORLD_MARGIN + Math.random() * (WORLD_HEIGHT - WORLD_MARGIN * 2);
+
         console.log(`[GameRoom] Room created: ${this.roomId}`);
 
         this.onMessage('MSG_PLAYER_POSITION', (client, data) => {
@@ -80,6 +84,11 @@ export class GameRoom extends Room {
             if (player.evolution >= 95) {
                 player.evolution = 0;
                 player.role = player.role === 'human' ? 'monster' : 'human';
+
+                // Heal the player if they transformed into a monster
+                if (player.role === 'monster') {
+                    player.hp = Math.min(100, player.hp + 7);
+                }
             } else {
                 return; // Ignore invalid transformation requests
             }
@@ -125,28 +134,54 @@ export class GameRoom extends Room {
             }
 
             // Handle Taser Stun
-            if (role === 'human' && weaponType === 2 && !isNpc) {
-                this.broadcast("player_stunned", { sessionId: targetId, duration: 1000 });
+            if (role === 'human' && weaponType === 2) {
+                if (isNpc) {
+                    target.isStunned = true;
+                    target.stunExpireTime = Date.now() + 1000;
+                    this.broadcast("npc_stunned", { npcId: targetId, duration: 1000 });
+                } else {
+                    this.broadcast("player_stunned", { sessionId: targetId, duration: 1000 });
+                }
             }
 
             // Handle Poison
             if (role === 'monster' && weaponType === 1) {
                 let poisonTicks = 0;
+
+                // Optional: broadcast initial poison hit so the client can show it right away
+                if (isNpc) {
+                    this.broadcast("npc_poisoned", { npcId: targetId, duration: 10000 }); // 5 ticks * 2s
+                } else {
+                    this.broadcast("player_poisoned", { sessionId: targetId, duration: 10000 }); // Broadcast for players too
+                }
+
                 let interval = setInterval(() => {
                     if (!target || target.isDead || poisonTicks >= 5) {
                         clearInterval(interval);
                         return;
                     }
-                    target.hp -= 1; // 1 damage per 2 seconds
+                    target.hp -= 4; // 4 damage per 2 seconds (20 totale)
                     poisonTicks++;
+
                     if (target.hp <= 0 && !target.isDead) {
                         target.hp = 0;
                         target.isDead = true;
-                        if (!isNpc) this.broadcast("player_died", { sessionId: targetId });
+                        if (!isNpc) {
+                            this.broadcast("player_died", { sessionId: targetId });
+                        }
                         clearInterval(interval);
                         if (shooter.evolution < 100) {
                             shooter.evolution = Math.min(100, shooter.evolution + 50);
                         }
+                        
+                        // Rimuovi il cadavere dopo 5 secondi
+                        setTimeout(() => {
+                            if (isNpc && this.state.npcs.has(targetId)) {
+                                this.state.npcs.delete(targetId);
+                            } else if (!isNpc && this.state.players.has(targetId)) {
+                                this.state.players.delete(targetId);
+                            }
+                        }, 5000);
                     }
                 }, 2000);
             }
@@ -160,6 +195,15 @@ export class GameRoom extends Room {
                 if (shooter.evolution < 100) {
                     shooter.evolution = Math.min(100, shooter.evolution + 50);
                 }
+                
+                // Rimuovi il cadavere dopo 5 secondi
+                setTimeout(() => {
+                    if (isNpc && this.state.npcs.has(targetId)) {
+                        this.state.npcs.delete(targetId);
+                    } else if (!isNpc && this.state.players.has(targetId)) {
+                        this.state.players.delete(targetId);
+                    }
+                }, 5000);
             }
         });
 
@@ -201,6 +245,12 @@ export class GameRoom extends Room {
                 npc.x = WORLD_MARGIN + Math.random() * (WORLD_WIDTH - WORLD_MARGIN * 2);
                 npc.y = WORLD_MARGIN + Math.random() * (WORLD_HEIGHT - WORLD_MARGIN * 2);
                 npc.role = role;
+
+                // Assegna un sottotipo casuale agli umani per variare lo sprite
+                if (role === 'human') {
+                    npc.name = Math.random() > 0.5 ? 'player' : 'enemy2';
+                }
+
                 npc.hp = 40; // Vita molto più bassa (prima 100)
                 this.state.npcs.set(npc.id, npc);
             }
@@ -235,6 +285,7 @@ export class GameRoom extends Room {
                 npc.x = WORLD_MARGIN + Math.random() * (WORLD_WIDTH - WORLD_MARGIN * 2);
                 npc.y = WORLD_MARGIN + Math.random() * (WORLD_HEIGHT - WORLD_MARGIN * 2);
                 npc.role = 'human';
+                npc.name = Math.random() > 0.5 ? 'player' : 'enemy2';
                 npc.hp = 40;
                 this.state.npcs.set(npc.id, npc);
                 humCount++;
@@ -262,6 +313,16 @@ export class GameRoom extends Room {
 
         this.state.npcs.forEach(npc => {
             if (npc.isDead) return;
+
+            // Check stun
+            if (npc.isStunned) {
+                if (Date.now() > npc.stunExpireTime) {
+                    npc.isStunned = false;
+                } else {
+                    npc.anim = 'stand'; // Blocca l'animazione
+                    return; // Salta movimento e attacco
+                }
+            }
 
             let closestTarget = null;
             let minDist = Infinity;
@@ -344,16 +405,35 @@ export class GameRoom extends Room {
                 let finalMag = Math.hypot(finalDx, finalDy);
 
                 if (finalMag > 0.1) {
-                     npc.x += (finalDx / finalMag) * moveDist;
-                     npc.y += (finalDy / finalMag) * moveDist;
+                    npc.x += (finalDx / finalMag) * moveDist;
+                    npc.y += (finalDy / finalMag) * moveDist;
 
-                     // Setta animazione in base alla prevalenza finale
-                     npc.anim = Math.abs(finalDx) > Math.abs(finalDy) ? 'rightwalk' : (finalDy > 0 ? 'walk' : 'upwalk');
-                     if (finalDx < 0 && Math.abs(finalDx) > Math.abs(finalDy)) npc.anim = 'leftwalk';
-                     npc.flipX = false;
+                    // Setta animazione in base alla prevalenza finale
+                    let animBase = 'walk'; // Fallback
+                    if (npc.role === 'monster') {
+                        animBase = 'enemy1_walk'; // I mostri usano enemy1
+                    } else {
+                        // Gli umani usano animazioni diverse in base al nome
+                        if (npc.name === 'enemy2') {
+                            animBase = 'enemy2_walk';
+                        } else {
+                            // Il player originale usa direzioni specifiche
+                            animBase = Math.abs(finalDx) > Math.abs(finalDy) ? 'rightwalk' : (finalDy > 0 ? 'walk' : 'upwalk');
+                            if (finalDx < 0 && Math.abs(finalDx) > Math.abs(finalDy)) animBase = 'leftwalk';
+                        }
+                    }
+
+                    if (npc.role === 'human' && npc.name === 'player') {
+                        npc.anim = animBase; // Ha già la direzione
+                    } else {
+                        npc.anim = Math.abs(dx) > Math.abs(dy) ? animBase : (dy > 0 ? animBase : animBase);
+                        if (dx < 0 && Math.abs(dx) > Math.abs(dy)) npc.anim = animBase;
+                    }
+
+                    npc.flipX = false;
                 } else if (mag > 60) {
-                   // Fallback se le forze si annullano
-                   npc.anim = 'stand';
+                    // Fallback se le forze si annullano
+                    npc.anim = 'stand';
                 }
 
             } else {
@@ -372,15 +452,19 @@ export class GameRoom extends Room {
                         finalDy = npc.targetY - npc.y;
                     }
                 } else {
-                     // Dimentica il targetX se stiamo subendo repulsione
-                     npc.targetX = undefined;
+                    // Dimentica il targetX se stiamo subendo repulsione
+                    npc.targetX = undefined;
                 }
 
                 let finalMag = Math.hypot(finalDx, finalDy);
                 if (finalMag > 10) {
                     npc.x += (finalDx / finalMag) * (moveDist * 0.5); // cammina più lento
                     npc.y += (finalDy / finalMag) * (moveDist * 0.5);
-                    npc.anim = 'walk';
+                    if (npc.role === 'monster') {
+                        npc.anim = 'enemy1_walk';
+                    } else {
+                        npc.anim = npc.name === 'enemy2' ? 'enemy2_walk' : 'walk';
+                    }
                 } else {
                     npc.anim = 'stand';
                 }
@@ -398,9 +482,10 @@ export class GameRoom extends Room {
         const player = new Player();
         player.sessionId = client.sessionId;
 
-        // Spawn at random locations spread out
-        player.x = WORLD_MARGIN + Math.random() * (WORLD_WIDTH - WORLD_MARGIN * 2);
-        player.y = WORLD_MARGIN + Math.random() * (WORLD_HEIGHT - WORLD_MARGIN * 2);
+        // Spawn players close to each other, but not too close
+        const offsetMultiplier = this.clients.length;
+        player.x = this.baseSpawnX + (offsetMultiplier * 150);
+        player.y = this.baseSpawnY;
         player.anim = 'stand';
         player.flipX = false;
         player.role = '';

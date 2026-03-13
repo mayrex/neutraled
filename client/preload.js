@@ -187,9 +187,12 @@ export default class Preload extends Phaser.Scene {
         // Transformation
         this.load.spritesheet('evoluzione', './evoluzione/evoluzione.png', { frameWidth: 64, frameHeight: 64 });
 
-        // Multiplayer Music
+        // Multiplayer Music & Sounds
         this.load.audio('waiting_room_music', './multiplayer/Waiting-for-you-to-connect.mp3');
         this.load.audio('gamescene_music', './multiplayer/Climbing a huge mountain.mp3');
+        this.load.audio('veleno_sound', './multiplayer/veleno.mp3');
+        this.load.audio('fire_sound', './multiplayer/fire.mp3');
+        this.load.audio('taser_sound', './multiplayer/taser.mp3');
     }
 
     create() {
@@ -248,6 +251,14 @@ export default class Preload extends Phaser.Scene {
             frameRate: 4,
             repeat: 0
         });
+
+        this.anims.create({
+            key: 'evoluzione_anim',
+            frames: this.anims.generateFrameNumbers('evoluzione', { start: 0, end: 4 }), // Assuming a short animation, adjust if frames are more
+            frameRate: 10,
+            repeat: 0
+        });
+
         this.anims.create({
             key: 'scene2_talk',
             frames: this.anims.generateFrameNumbers('scene2_sprite5', { start: 0, end: 7 }),
@@ -270,6 +281,21 @@ export default class Preload extends Phaser.Scene {
             key: 'mostro3_anim',
             frames: this.anims.generateFrameNumbers('mostro3', { start: 0, end: 1 }),
             frameRate: 4,
+            repeat: -1
+        });
+
+        // NPC Enemy animations (per scene5 e multiplayer GameScene)
+        if (!this.anims.exists('enemy1_walk')) this.anims.create({
+            key: 'enemy1_walk',
+            frames: this.anims.generateFrameNumbers('enemy1', { start: 0, end: 2 }), // Assuming 3 frames
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('enemy2_walk')) this.anims.create({
+            key: 'enemy2_walk',
+            frames: this.anims.generateFrameNumbers('enemy2', { start: 0, end: 2 }), // Assuming 3 frames
+            frameRate: 6,
             repeat: -1
         });
 

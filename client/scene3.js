@@ -564,7 +564,7 @@ export default class Scene3 extends Phaser.Scene {
             this.registry.set('player_x', this.player.x);
             this.registry.set('player_y', this.player.y);
 
-            this.scene.start('Scene4');
+            this.scene.start('Scene14');
         }
     }
 

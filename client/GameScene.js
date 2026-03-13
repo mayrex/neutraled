@@ -169,6 +169,44 @@ export default class GameScene extends Phaser.Scene {
       }
     });
 
+    this.room.onMessage('npc_stunned', (data) => {
+      dbg(3, 'multiplayer', 'GameScene', 'npc_stunned → npcId:', data.npcId, 'duration:', data.duration);
+      const npcObj = this.npcs.get(data.npcId);
+      if (npcObj && npcObj.sprite && npcObj.sprite.active) {
+        npcObj.sprite.setTint(0x00ffff);
+        this.time.delayedCall(data.duration, () => npcObj.sprite.clearTint());
+      }
+    });
+
+    this.room.onMessage('npc_poisoned', (data) => {
+      const npcObj = this.npcs.get(data.npcId);
+      if (npcObj && npcObj.sprite && npcObj.sprite.active) {
+        npcObj.sprite.setTint(0x00ff00);
+        this.time.delayedCall(data.duration, () => npcObj.sprite.clearTint());
+      }
+    });
+
+    this.room.onMessage('player_poisoned', (data) => {
+      dbg(3, 'multiplayer', 'GameScene', 'player_poisoned → sessionId:', data.sessionId, 'duration:', data.duration);
+      if (data.sessionId === this.room.sessionId) {
+        // Local player is poisoned
+        this.localPlayerSprite.setTint(0x00ff00);
+        this.time.delayedCall(data.duration, () => this.localPlayerSprite.clearTint());
+      } else {
+        // Remote player is poisoned
+        let remoteObj = null;
+        this.remotePlayersGroup.getChildren().forEach(sprite => {
+            if (sprite.sessionId === data.sessionId) {
+                remoteObj = { sprite: sprite };
+            }
+        });
+        if (remoteObj) {
+          remoteObj.sprite.setTint(0x00ff00);
+          this.time.delayedCall(data.duration, () => remoteObj.sprite.clearTint());
+        }
+      }
+    });
+
     this.room.onMessage('player_transform', (data) => {
       dbg(3, 'multiplayer', 'GameScene', 'player_transform → sessionId:', data.sessionId, 'mode:', data.mode);
       this.onRemoteTransform(data.sessionId, data.mode);
@@ -191,8 +229,18 @@ export default class GameScene extends Phaser.Scene {
     // --- State Listeners: NPCs ---
     this.room.state.npcs.onAdd((npc, npcId) => {
       dbg(3, 'multiplayer', 'GameScene', 'NPC spawned → id:', npcId, 'role:', npc.role);
-      const texture = npc.role === 'monster' ? 'monster' : 'player';
+
+      // Usa asset diversi per gli NPC 
+      // Mostro NPC = enemy1
+      // Umano NPC = npc.name (può essere 'player' o 'enemy2')
+      const texture = npc.role === 'monster' ? 'enemy1' : (npc.name || 'player');
       const sprite = this.physics.add.sprite(npc.x, npc.y, texture).setDepth(8);
+
+      // Scala leggermente gli sprite enemy1 ed enemy2 (il player è già della grandezza giusta)
+      if (texture === 'enemy1' || texture === 'enemy2') {
+        sprite.setScale(1.5);
+      }
+
       sprite.npcId = npcId;
       this.npcGroup.add(sprite);
 
@@ -219,15 +267,40 @@ export default class GameScene extends Phaser.Scene {
         upNpc.targetX = npc.x;
         upNpc.targetY = npc.y;
 
-        // Animations
+        // Animations (Gestione animazioni frame fissi o sprite sheet se ci sono)
         let animToPlay = npc.anim;
-        if (npc.role === 'monster' && animToPlay && !animToPlay.startsWith('monster_')) {
-          const map = { 'stand': 'monster_stand', 'walk': 'monster_downwalk', 'upwalk': 'monster_upwalk', 'rightwalk': 'monster_rightwalk', 'leftwalk': 'monster_leftwalk' };
-          animToPlay = map[animToPlay] || 'monster_stand';
+
+        // Mappa per il player texture che usa animazioni specifiche diverse
+        if (texture === 'player' && animToPlay && !animToPlay.startsWith('enemy')) {
+          // animToPlay arriva già come 'walk', 'upwalk', 'leftwalk', 'rightwalk', 'stand'
+        } else if (texture === 'player' && animToPlay && animToPlay.startsWith('enemy')) {
+          animToPlay = 'walk';
+        }
+
+        // Se texture è un nemico, non fargli suonare l'animazione 'stand' del player altrimenti cambia spritesheet!
+        if ((texture === 'enemy1' || texture === 'enemy2') && animToPlay === 'stand') {
+          // Ferma l'animazione camminata e rimetti il frame base invece di suonare 'stand'
+          upNpc.sprite.stop();
+          upNpc.sprite.setFrame(0);
+          animToPlay = null; // non suonare nulla
+        }
+
+        // Se in qualche modo la texture assegnata dal server e' sbagliata per 'enemy1' vs 'enemy2' fixiamola qui
+        if (texture === 'enemy1' || texture === 'enemy2') {
+          if (upNpc.sprite.texture.key !== texture) {
+            upNpc.sprite.setTexture(texture);
+          }
+        } else if (texture === 'player') {
+          if (upNpc.sprite.texture.key !== 'player') {
+            upNpc.sprite.setTexture('player');
+          }
         }
 
         if (animToPlay && upNpc.sprite.anims && upNpc.sprite.anims.currentAnim?.key !== animToPlay) {
-          upNpc.sprite.play(animToPlay, true);
+          // Se non esistono animazioni per questi enemy, non blocchiamo l'esecuzione:
+          if (this.anims.exists(animToPlay)) {
+            upNpc.sprite.play(animToPlay, true);
+          }
         }
 
         if (npc.flipX !== undefined) upNpc.sprite.setFlipX(npc.flipX);
@@ -418,10 +491,18 @@ export default class GameScene extends Phaser.Scene {
 
   spawnProjectile(shooterId, weaponType, role, x, y, vx, vy) {
     let color = 0xffffff;
+    let soundToPlay = null;
+
     if (role === 'human') {
       color = weaponType === 1 ? 0xffff00 : 0x00aaff; // Pistol (Yellow) / Taser (Blue)
+      soundToPlay = weaponType === 1 ? 'fire_sound' : 'taser_sound';
     } else {
       color = weaponType === 1 ? 0x00ff00 : 0xff4400; // Poison (Green) / Fireball (Orange)
+      soundToPlay = weaponType === 1 ? 'veleno_sound' : 'fire_sound';
+    }
+
+    if (soundToPlay) {
+      this.sound.play(soundToPlay, { volume: 0.2 });
     }
 
     const proj = this.physics.add.sprite(x, y, 'bullet').setDepth(8);
