@@ -66,6 +66,7 @@ export default class Scene2 extends Phaser.Scene {
 
     /* ───────────────────────────────────── create ─────────────────────────── */
     create() {
+        this.registry.set('is_player_human',true);
         const { W, H, IMG_H } = this;
 
         // Reset camera – evita offset ereditati da scene precedenti
