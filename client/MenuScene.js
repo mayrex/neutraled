@@ -6,57 +6,115 @@ const SERVER_URL = 'ws://localhost:2567';
 export default class MenuScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MenuScene' });
-        // world
-        this.worldWidth = 800;
-        this.worldHeight = 600;
-
-        // clouds
-        this.clouds = [];
-
-        // secret character
-        this.secretCharacter = null;
-        this.secretDirection = 1;
-        this.frameWaiter = 60;
-    }
-
-    init() {
-        const w = this.worldWidth;
-        const h = this.worldHeight;
-
-        this.cloudConfig = [
-            { x: (w / 5 * 1) - 60, y: (h / 5 * 1) - 60, speed: 1.5 },
-            { x: (w / 5 * 2) - 60, y: (h / 5 * 2) - 60, speed: 2 },
-            { x: (w / 5 * 3) - 60, y: (h / 5 * 3) - 60, speed: 1 },
-            { x: (w / 5 * 4) - 60, y: (h / 5 * 4) - 60, speed: 2 },
-            { x: (w / 5 * 5) - 60, y: (h / 5 * 5) - 60, speed: 1 },
-            { x: (w / 5 * 1) - 60, y: (h / 5 * 3) - 60, speed: 2 },
-            { x: (w / 5 * 1) - 60, y: (h / 5 * 5) - 60, speed: 1.5 },
-            { x: (w / 5 * 3) - 60, y: (h / 5 * 5) - 60, speed: 2 },
-            { x: (w / 5 * 4) - 60, y: (h / 5 * 1) - 60, speed: 2 },
-            { x: (w / 5 * 5) - 60, y: (h / 5 * 2) - 60, speed: 2 }
-        ];
-
-        this.frameWaiter = 60;
     }
 
     create() {
         this.createBackground();
-        this.createClouds();
-        this.createSecretCharacter();
-        this.createUI();
-        this.sound.play("menu", { loop: true });
+        this.createMonsters();
+        this.createTitle();
+        this.createButtons();
     }
-    update() {
-        this.updateClouds();
-        this.updateSecretCharacter();
+
+    // -------------------------------------------------------------------
+    // Sfondo: sfumatura radiale rosso (centro) → nero (bordi)
+    // -------------------------------------------------------------------
+    createBackground() {
+        const W = 800, H = 600;
+        const key = 'menu_bg_canvas';
+
+        if (!this.textures.exists(key)) {
+            const canvas = this.textures.createCanvas(key, W, H);
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, 520);
+            grad.addColorStop(0, '#7A0000');
+            grad.addColorStop(0.45, '#2E0000');
+            grad.addColorStop(1, '#000000');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+            canvas.refresh();
+        }
+
+        this.add.image(400, 300, key).setDepth(0);
     }
+
+    // -------------------------------------------------------------------
+    // Mostri in cima: Mostro1 (sx) — Mostro3 (centro) — Mostro2 (dx)
+    // -------------------------------------------------------------------
+    createMonsters() {
+        const y = 194; // +100px
+
+        // Mostro1: spritesheet 32×32, 3 col × 3 righe → 9 frame
+        this.add.sprite(155, y, 'mostro1')
+            .setScale(3.08) // 2.8 × 1.1
+            .setDepth(2)
+            .play('mostro1_anim');
+
+        // Mostro3 (centro): spritesheet 256×256, 2 righe — +200%
+        this.add.sprite(400, y, 'mostro3')
+            .setScale(1.254) // 0.418 × 3
+            .setDepth(2)
+            .play('mostro3_anim');
+
+        // Mostro2 (dx): spritesheet 256×256, 6 righe
+        this.add.sprite(645, y, 'mostro2')
+            .setScale(0.418) // 0.38 × 1.1
+            .setDepth(2)
+            .play('mostro2_anim');
+    }
+
+    // -------------------------------------------------------------------
+    // Titolo
+    // -------------------------------------------------------------------
+    createTitle() {
+        this.add.image(400, 309, 'title') // +100px
+            .setOrigin(0.5)
+            .setDepth(3)
+            .setScale(0.5);
+    }
+
+    // -------------------------------------------------------------------
+    // Bottoni: frame 0 = normale, frame 1 = hover
+    // -------------------------------------------------------------------
+    createButtons() {
+        const cx = 400;
+        // scale 6 (2 × 3 = +200%), spacing 80px tra i centri
+        this.createSpriteButton(cx, 410, 'storia_btn', () => this.scene.start('Scene2'));
+        this.createSpriteButton(cx, 490, 'multi_btn', () => this.connectAndJoin());
+        this.createSpriteButton(cx, 570, 'crediti_btn', () => this.openCredits());
+    }
+
+    createSpriteButton(x, y, texture, callback) {
+        const btn = this.add.sprite(x, y, texture, 0)
+            .setDepth(4)
+            .setOrigin(0.5)
+            .setScale(6)
+            .setInteractive({ useHandCursor: true });
+
+        btn.anims.stop(); // nessuna animazione automatica
+        btn.setFrame(0);  // forza frame statico iniziale
+
+        btn.on('pointerover', () => btn.setFrame(1));
+        btn.on('pointerout', () => btn.setFrame(0));
+        btn.on('pointerdown', callback);
+
+        return btn;
+    }
+
+    // -------------------------------------------------------------------
+    // Crediti (placeholder — aggiungere SceneCrediti se necessario)
+    // -------------------------------------------------------------------
+    openCredits() {
+        console.log('Crediti');
+    }
+
+    // -------------------------------------------------------------------
+    // Connessione multiplayer (logica invariata)
+    // -------------------------------------------------------------------
     async connectAndJoin() {
         console.log('Connecting…');
-
         try {
             const client = new Colyseus.Client(SERVER_URL);
             const room = await client.joinOrCreate('game_room');
-
             console.log('Joined! Waiting for room…');
             this.scene.start('WaitingRoomScene', { client, room });
         } catch (err) {
@@ -64,134 +122,4 @@ export default class MenuScene extends Phaser.Scene {
             console.log('Connection failed. Is the server running?');
         }
     }
-
-    createBackground() {
-
-        this.add.image(0, 0, 'background_sky')
-            .setScale(1.6)
-            .setDepth(1);
-
-    }
-
-    createClouds() {
-
-        this.cloudConfig.forEach((c, i) => {
-
-            const cloud = this.add.image(
-                c.x,
-                c.y,
-                `background_cloud${i + 1}`
-            )
-                .setDepth(2)
-                .setScale(i >= 7 ? 2 : 1.5)
-                .setOrigin(0);
-
-            cloud.speed = c.speed;
-
-            this.clouds.push(cloud);
-
-        });
-
-    }
-
-    createSecretCharacter() {
-
-        this.secretCharacter = this.add.sprite(
-            this.worldWidth / 2,
-            this.worldHeight / 2,
-            'secret_character'
-        )
-            .setDepth(3)
-            .setScale(4)
-            .setFlipX(true);
-
-        this.secretCharacter.play('flymoving');
-
-    }
-
-    createUI() {
-
-        this.createButton(
-            this.worldWidth / 2,
-            this.worldHeight / 2 + 150,
-            'play_button',
-            'play_button_pressed',
-            'play_button_depressed',
-            () => this.scene.start('Scene2')
-        );
-
-        this.createButton(
-            this.worldWidth / 2,
-            this.worldHeight / 2 + 220,
-            'option_button',
-            'option_button_pressed',
-            'option_button_depressed',
-            () => this.connectAndJoin()
-        );
-
-        this.add.image(
-            this.worldWidth / 2,
-            this.worldHeight / 5,
-            'title'
-        )
-            .setOrigin(0.5)
-            .setDepth(5)
-            .setScale(0.5);
-
-    }
-
-    createButton(x, y, texture, pressAnim, releaseAnim, callback) {
-
-        const button = this.add.sprite(x, y, texture, 0) // frame iniziale
-            .setDepth(3)
-            .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true });
-
-        button.play(releaseAnim); // stato iniziale del bottone
-
-        button.on('pointerover', () => {
-            button.play(pressAnim, true);
-        });
-
-        button.on('pointerout', () => {
-            button.play(releaseAnim, true);
-        });
-
-        button.on('pointerdown', callback);
-
-        return button;
-    }
-
-    updateClouds() {
-
-        this.clouds.forEach((cloud, i) => {
-
-            cloud.x += cloud.speed;
-            cloud.y += cloud.speed;
-
-            if (cloud.x > this.worldWidth + 100) cloud.x = -200 - (i * 20);
-            if (cloud.y > this.worldHeight) cloud.y = -200 - (i * 20);
-
-        });
-
-    }
-
-    updateSecretCharacter() {
-
-        if (this.frameWaiter === 30) {
-
-            this.secretCharacter.y += 5 * this.secretDirection;
-            this.secretDirection *= -1;
-
-            this.frameWaiter = 60;
-
-        } else {
-
-            this.frameWaiter--;
-
-        }
-
-    }
-
-
 }
