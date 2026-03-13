@@ -15,7 +15,7 @@ const MONSTER_NAMES = ['Gothmog', 'Zorblax', 'Mordrok', 'Xythar', 'Gruumsh', 'Vo
 export class GameRoom extends Room {
     onCreate(options) {
         this.setState(new GameState());
-        this.maxClients = 2; // Keep at 2 players as requested
+        this.maxClients = 4; // Keep at 2 players as requested
 
         console.log(`[GameRoom] Room created: ${this.roomId}`);
 
@@ -121,7 +121,7 @@ export class GameRoom extends Room {
             // Give some large evolution on hit
             if (shooter.evolution < 100) {
                 // 2.5x damage as evolution points to fill up much faster
-                shooter.evolution = Math.min(100, shooter.evolution + (damage * 2.5)); 
+                shooter.evolution = Math.min(100, shooter.evolution + (damage * 2.5));
             }
 
             // Handle Taser Stun

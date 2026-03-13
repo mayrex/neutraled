@@ -57,7 +57,7 @@ export default class Preload extends Phaser.Scene {
         this.load.spritesheet('mostro2', './scene1/Mostro2.png', { frameWidth: 256, frameHeight: 256 });
         this.load.spritesheet('mostro3', './scene1/Mostro3.png', { frameWidth: 256, frameHeight: 256 });
         this.load.spritesheet('storia_btn', './scene1/Storia bottone.png', { frameWidth: 64, frameHeight: 64 });
-        this.load.spritesheet('multi_btn', './scene1/Multiplayer.png', { frameWidth: 64, frameHeight: 64 });
+        this.load.spritesheet('multi_btn', './scene1/Multiplayer Bottone.png', { frameWidth: 64, frameHeight: 64 });
         this.load.spritesheet('crediti_btn', './scene1/Crediti Bottone.png', { frameWidth: 64, frameHeight: 64 });
 
         this.load.audio('menu_music', './scene1/menu.mp3');
@@ -170,6 +170,21 @@ export default class Preload extends Phaser.Scene {
         this.load.image('ABunchOfFlowers', './oggetti ambientali/ABunchOfFlowers.png');
         this.load.image('Teschio', './oggetti ambientali/Teschio.png');
         this.load.image('chebellaLANTERNA', './oggetti ambientali/chebellaLANTERNA.png');
+
+        // === MULTIPLAYER ASSETS ===
+        this.load.tilemapTiledJSON('mp_map', './multiplayer/Tilemap mp.tmj');
+        this.load.image('mp_tiles', './multiplayer/ezgif-819d516e06a53a6e (1) (1).png');
+        this.load.image('monster', './scene8/monster_player.png');
+        this.load.image('human_preview', './scene3/scene3_player.png');
+        this.load.image('monster_preview', './scene8/monster_player.png');
+        
+        // Collectibles used in GameScene.js
+        this.load.image('collectible_human', './oggetti ambientali/ABunchOfFlowers.png');
+        this.load.image('collectible_monster', './oggetti ambientali/Teschio.png');
+        this.load.image('collectible_both', './oggetti ambientali/Cespuglio.png');
+
+        // Transformation
+        this.load.spritesheet('evoluzione', './evoluzione/evoluzione.png', { frameWidth: 64, frameHeight: 64 });
     }
 
     create() {
