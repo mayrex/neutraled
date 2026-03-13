@@ -169,6 +169,11 @@ export default class Scene4 extends Phaser.Scene {
     }
 
     update() {
+        if (this.hp <= 0) {
+            this.scene.stop();
+            this.scene.start('SceneGameOver', { returnScene: 'Scene4' });
+            return;
+        }
 
         if (this.isBulletSpawned) {
             this.battle_end_script();

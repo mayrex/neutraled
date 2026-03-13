@@ -382,7 +382,7 @@ export default class Scene9 extends Phaser.Scene {
         if (this.hp === 0) {
             this.registry.set('enemy3_defeated', false);
             this.scene.stop();
-            this.scene.start('Scene8');
+            this.scene.start('SceneGameOver', { returnScene: 'Scene9' });
         }
 
 
@@ -591,11 +591,16 @@ export default class Scene9 extends Phaser.Scene {
     }
 
     win_script() {
-
-        this.registry.set('enemy3_defeated', true); 
-        this.registry.set('player_level', (this.registry.get('player_level') || 1) + 1);
-        this.scene.stop();
-        this.scene.start('Scene8');
+        if(this.hp>0){
+            this.registry.set('enemy3_defeated', true); 
+            this.registry.set('player_level', (this.registry.get('player_level') || 1) + 1);
+            this.scene.stop();
+            this.scene.start('Scene8');
+        } else {
+            this.registry.set('enemy3_defeated', false);
+            this.scene.stop();
+            this.scene.start('SceneGameOver', { returnScene: 'Scene9' });
+        }
     }
 
 }

@@ -463,7 +463,7 @@ export default class Scene7 extends Phaser.Scene {
         }else{
             this.registry.set('enemy2_defeated',false);
             this.scene.stop();
-            this.scene.start('Scene5');
+            this.scene.start('SceneGameOver', { returnScene: 'Scene7' });
         }
     }
 
