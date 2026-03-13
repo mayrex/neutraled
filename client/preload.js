@@ -77,6 +77,7 @@ export default class Preload extends Phaser.Scene {
         this.load.image('uscita', './scene3/scene3_uscita.png');
 
         // Monster Player Animations
+        this.load.image('monster', './scene8/monster_player.png');
         this.load.image('monster_player_stand_frame', './scene8/monster_player.png');
         this.load.image('monster_player_upwalking_frame1', './scene8/monster_player_upwalking_frame1.png');
         this.load.image('monster_player_upwalking_frame2', './scene8/monster_player_upwalking_frame2.png');
@@ -157,6 +158,20 @@ export default class Preload extends Phaser.Scene {
         this.load.spritesheet('tifone_tornado', './scene15/tifone_tornado_animation.png', { frameWidth: 36, frameHeight: 50 });
         this.load.audio('scene15_audio', './sounds/scene15_fight_soundtrack.mp3');
 
+        // === GameScene Multiplayer ===
+        this.load.image('plains_bg', './plain/Map test final.png');
+        // Carica la nuova mappa
+        this.load.tilemapTiledJSON('mp_map', './multiplayer/Tilemap mp.tmj');
+        this.load.image('mp_tiles', './multiplayer/ezgif-819d516e06a53a6e (1) (1).png');
+
+        this.load.image('human_preview', './scene3/scene3_player.png');
+        this.load.image('npc', './scene3/player.png');
+        this.load.image('npc_monster', './scene8/monster_player.png');
+        this.load.image('monster_preview', './scene8/monster_player.png');
+
+        // === EVOLUZIONE ===
+        this.load.spritesheet('evoluzione', './evoluzione/evoluzione.png', { frameWidth: 64, frameHeight: 64 });
+
         // === OGGETTI AMBIENTALI ===
         this.load.image('Cespuglio', './oggetti ambientali/Cespuglio.png');
         this.load.image('ABunchOfFlowers', './oggetti ambientali/ABunchOfFlowers.png');
@@ -165,6 +180,109 @@ export default class Preload extends Phaser.Scene {
     }
 
     create() {
+        // ── Animazioni player umano ──────────────────────────────────────────
+        this.anims.create({
+            key: 'upwalk',
+            frames: [
+                { key: 'upwalk_frame1' },
+                { key: 'upwalk_frame2' },
+                { key: 'upwalk_frame1' },
+                { key: 'upwalk_frame3' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'leftwalk',
+            frames: [
+                { key: 'leftwalk_frame1' },
+                { key: 'leftwalk_frame2' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'rightwalk',
+            frames: [
+                { key: 'rightwalk_frame1' },
+                { key: 'rightwalk_frame2' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'stand',
+            frames: [{ key: 'player' }],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'walk',
+            frames: [
+                { key: 'player' },
+                { key: 'downwalk_frame2' },
+                { key: 'downwalk_frame3' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        // ── Animazioni player mostro ─────────────────────────────────────────
+        this.anims.create({
+            key: 'monster_upwalk',
+            frames: [
+                { key: 'monster_player_upwalking_frame2' },
+                { key: 'monster_player_upwalking_frame1' },
+                { key: 'monster_player_upwalking_frame3' },
+                { key: 'monster_player_upwalking_frame1' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'monster_downwalk',
+            frames: [
+                { key: 'monster_player_downwalking_frame2' },
+                { key: 'monster_player_downwalking_frame1' },
+                { key: 'monster_player_downwalking_frame3' },
+                { key: 'monster_player_downwalking_frame1' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'monster_rightwalk',
+            frames: [
+                { key: 'monster_player_rightwalking_frame1' },
+                { key: 'monster_player_rightwalking_frame2' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'monster_leftwalk',
+            frames: [
+                { key: 'monster_player_leftwalking_frame1' },
+                { key: 'monster_player_leftwalking_frame2' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'monster_stand',
+            frames: [{ key: 'monster_player_downwalking_frame1' }],
+            frameRate: 6,
+            repeat: -1
+        });
+
         this.anims.create({
             key: 'flymoving',
             frames: [
@@ -226,6 +344,39 @@ export default class Preload extends Phaser.Scene {
             frameRate: 6,
             repeat: -1
         });
+
+        this.anims.create({
+            key: 'evoluzione_anim',
+            frames: this.anims.generateFrameNumbers('evoluzione', { start: 0, end: 20 }),
+            frameRate: 14,
+            repeat: 0,
+            hideOnComplete: true
+        });
+
+        // ── Texture programmatiche collezionabili multiplayer ────────────────
+        const gfx = this.add.graphics();
+
+        gfx.fillStyle(0x2255dd, 1);
+        gfx.fillCircle(16, 16, 14);
+        gfx.fillStyle(0x88bbff, 1);
+        gfx.fillCircle(10, 10, 5);
+        gfx.generateTexture('collectible_human', 32, 32);
+        gfx.clear();
+
+        gfx.fillStyle(0x881133, 1);
+        gfx.fillCircle(16, 16, 14);
+        gfx.fillStyle(0xff6644, 1);
+        gfx.fillCircle(10, 10, 5);
+        gfx.generateTexture('collectible_monster', 32, 32);
+        gfx.clear();
+
+        gfx.fillStyle(0xccaa00, 1);
+        gfx.fillCircle(16, 16, 14);
+        gfx.fillStyle(0xffee88, 1);
+        gfx.fillCircle(10, 10, 5);
+        gfx.generateTexture('collectible_both', 32, 32);
+        gfx.destroy();
+
         this.scene.start('MenuScene');
     }
 }
