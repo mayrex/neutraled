@@ -21,6 +21,7 @@ import SceneGameOver from './scene_gameover.js';
 import SceneVictory from './scene_victory.js';
 import SceneGameWin from './scene_gamewin.js';
 import SceneUI from './scene_ui.js';
+import SceneCredits from './SceneCredits.js';
 
 
 
@@ -36,7 +37,7 @@ const config = {
   height: 600,
   pixelArt: true,
   backgroundColor: '#0a0a0f',
-  scene: [PreloadScene, MenuScene, WaitingRoomScene, GameScene, Scene2, Scene3, Scene4, Scene5, Scene6, Scene7, Scene8, Scene9, Scene10, Scene11, Scene12, Scene13, Scene14, Scene15, SceneGameOver, SceneVictory, SceneGameWin, SceneUI],
+  scene: [PreloadScene, MenuScene, WaitingRoomScene, GameScene, Scene2, Scene3, Scene4, Scene5, Scene6, Scene7, Scene8, Scene9, Scene10, Scene11, Scene12, Scene13, Scene14, Scene15, SceneGameOver, SceneVictory, SceneGameWin, SceneUI, SceneCredits],
   plugins: {
     global: [
       {

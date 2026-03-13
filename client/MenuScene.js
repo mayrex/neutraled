@@ -115,7 +115,7 @@ export default class MenuScene extends Phaser.Scene {
     // Crediti (placeholder — aggiungere SceneCrediti se necessario)
     // -------------------------------------------------------------------
     openCredits() {
-        console.log('Crediti');
+        this.scene.start('SceneCredits');
     }
 
     // -------------------------------------------------------------------
