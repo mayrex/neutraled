@@ -59,39 +59,48 @@ export default class GameScene extends Phaser.Scene {
     this.keys = this.input.keyboard.addKeys('ENTER,BACKSPACE,R');
 
     // ─── UI ─────────────────────────────────────────────────────────────────
-    this.add.text(10, 10, 'WASD: muovi  ENTER/BACKSPACE: spara', {
+    const cx = -this.scale.width / 2;
+    const cy = -this.scale.height / 2;
+    
+    // Contenitore UI ancorato al centro dello schermo, scalato inversamente allo zoom
+    this.uiContainer = this.add.container(this.scale.width / 2, this.scale.height / 2).setScrollFactor(0).setDepth(100).setScale(1 / 1.3);
+
+    const helpText = this.add.text(cx + 10, cy + 10, 'WASD: muovi  ENTER/BACKSPACE: spara', {
       fontFamily: 'monospace',
       fontSize: '14px',
       color: '#ffffff',
       backgroundColor: '#00000088',
       padding: { x: 5, y: 4 }
-    }).setScrollFactor(0);
+    });
 
-    this.add.text(10, 38, '[R] Trasformazione', {
+    const transformHelpText = this.add.text(cx + 10, cy + 38, '[R] Trasformazione', {
       fontFamily: 'monospace',
       fontSize: '12px',
       color: '#aaaaaa',
       backgroundColor: '#00000066',
       padding: { x: 4, y: 3 }
-    }).setScrollFactor(0);
+    });
 
-    this.modeText = this.add.text(this.scale.width - 10, 10, 'MODALITÀ: UMANO', {
+    this.modeText = this.add.text((this.scale.width / 2) - 10, cy + 10, 'MODALITÀ: UMANO', {
       fontFamily: 'monospace',
       fontSize: '14px',
       color: '#88ddff',
       backgroundColor: '#00000088',
       padding: { x: 6, y: 4 }
-    }).setOrigin(1, 0).setScrollFactor(0).setDepth(50);
+    }).setOrigin(1, 0);
 
-    this.evolutionText = this.add.text(10, 66, 'Evoluzione: 0%', {
+    this.evolutionText = this.add.text(cx + 10, cy + 66, 'Evoluzione: 0%', {
       fontFamily: 'monospace',
       fontSize: '14px',
       color: '#ffbb00',
       backgroundColor: '#00000088',
       padding: { x: 4, y: 3 }
-    }).setScrollFactor(0);
+    });
 
-    this.evolutionBar = this.add.graphics().setScrollFactor(0).setDepth(50);
+    this.evolutionBar = this.add.graphics();
+    
+    // Aggiungo tutto al container
+    this.uiContainer.add([helpText, transformHelpText, this.modeText, this.evolutionText, this.evolutionBar]);
 
     this.createMapObjects();
 
@@ -254,7 +263,7 @@ export default class GameScene extends Phaser.Scene {
         this.localHpBar = this.add.graphics({ depth: 11 });
 
         this.cameras.main.startFollow(this.localPlayerSprite, true, 0.1, 0.1);
-        this.cameras.main.setZoom(1);
+        this.cameras.main.setZoom(1.3); // Zoom ravvicinato (1.3) come richiesto
 
         // LED: vita piena all'inizio
         this._lastLedHp = player.hp;
@@ -370,11 +379,14 @@ export default class GameScene extends Phaser.Scene {
     const pct = Math.max(0, Math.min(100, evolutionAmt) / 100);
     this.evolutionText.setText(`Evoluzione: ${Math.floor(pct * 100)}%`);
 
+    const cx = -this.scale.width / 2;
+    const cy = -this.scale.height / 2;
+
     graphics.fillStyle(0x000000, 1);
-    graphics.fillRect(10, 90, 200, 12);
+    graphics.fillRect(cx + 10, cy + 90, 200, 12);
 
     graphics.fillStyle(0xffaa00, 1);
-    graphics.fillRect(12, 92, 196 * pct, 8);
+    graphics.fillRect(cx + 12, cy + 92, 196 * pct, 8);
   }
 
   // ─── Weapons & Shoot ──────────────────────────────────────────────────────
@@ -424,9 +436,10 @@ export default class GameScene extends Phaser.Scene {
   }
 
   showGameOver() {
-    const { width, height } = this.scale;
-    this.add.rectangle(0, 0, width, height, 0x000000, 0.7).setOrigin(0, 0).setScrollFactor(0).setDepth(100);
-    this.add.text(width / 2, height / 2, 'GAME OVER', { fontSize: '64px', fill: '#ff0000', fontWeight: 'bold' }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+    // Aggiungo il Game Over Text e Background alla UI camera container
+    const warnBg = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x000000, 0.7).setOrigin(0.5, 0.5);
+    const textOver = this.add.text(0, 0, 'GAME OVER', { fontSize: '64px', fill: '#ff0000', fontWeight: 'bold' }).setOrigin(0.5);
+    this.uiContainer.add([warnBg, textOver]);
   }
 
   // ─── Update Loop ──────────────────────────────────────────────────────────
@@ -621,20 +634,21 @@ export default class GameScene extends Phaser.Scene {
     if (this.isDead || !this.localPlayerSprite) return;
 
     if (this.isTransforming) {
-       console.log("Già in trasformazione!");
-       return;
+      console.log("Già in trasformazione!");
+      return;
     }
 
     // Check Evolution limits for BOTH modes
     const myPlayerState = this.room.state.players.get(this.room.sessionId);
-    
+
     // Tolleranza per possibili arrotondamenti
     if (myPlayerState.evolution < 99) {
       dbg(3, 'multiplayer', 'GameScene', 'Trasformazione negata, evoluzione insufficiente:', myPlayerState.evolution);
-      // Feedback visivo
-      const warnText = this.add.text(this.scale.width / 2, 80, 'Evoluzione insufficiente per trasformarsi!', {
-          fontFamily: 'monospace', fontSize: '16px', color: '#ff0000', backgroundColor: '#000000aa', padding: {x:10, y:5}
-      }).setOrigin(0.5).setScrollFactor(0).setDepth(200);
+      // Feedback visivo nel UI container
+      const warnText = this.add.text(0, -this.scale.height / 2 + 80, 'Evoluzione insufficiente per trasformarsi!', {
+        fontFamily: 'monospace', fontSize: '16px', color: '#ff0000', backgroundColor: '#000000aa', padding: { x: 10, y: 5 }
+      }).setOrigin(0.5);
+      this.uiContainer.add(warnText);
       this.time.delayedCall(2000, () => warnText.destroy());
       return;
     }
@@ -649,54 +663,54 @@ export default class GameScene extends Phaser.Scene {
     this.localPlayerSprite.setVisible(false);
 
     try {
-        // Sprite dell'animazione (64x64 * 3 = 192x192)
-        const animSprite = this.add.sprite(px, py, 'evoluzione').setDepth(20).setScale(3);
-        animSprite.play('evoluzione_anim');
+      // Sprite dell'animazione (64x64 * 3 = 192x192)
+      const animSprite = this.add.sprite(px, py, 'evoluzione').setDepth(20).setScale(3);
+      animSprite.play('evoluzione_anim');
 
-        animSprite.on('animationcomplete', () => {
-          animSprite.destroy();
-          this.finishTransform();
-        });
+      animSprite.on('animationcomplete', () => {
+        animSprite.destroy();
+        this.finishTransform();
+      });
     } catch (e) {
-        console.error("Errore durante l'animazione di trasformazione:", e);
-        this.finishTransform(); // Forza il completamento se l'animazione fallisce
+      console.error("Errore durante l'animazione di trasformazione:", e);
+      this.finishTransform(); // Forza il completamento se l'animazione fallisce
     }
   }
 
   finishTransform() {
-      // Cambia modalità localmente
-      this.currentMode = this.currentMode === 'human' ? 'monster' : 'human';
+    // Cambia modalità localmente
+    this.currentMode = this.currentMode === 'human' ? 'monster' : 'human';
 
-      // Aggiorna texture giocatore
-      const newTexture = this.currentMode === 'monster' ? 'monster' : 'player';
-      this.localPlayerSprite.setTexture(newTexture);
-      this.localPlayerSprite.play(this.currentMode === 'monster' ? 'monster_stand' : 'stand');
+    // Aggiorna texture giocatore
+    const newTexture = this.currentMode === 'monster' ? 'monster' : 'player';
+    this.localPlayerSprite.setTexture(newTexture);
+    this.localPlayerSprite.play(this.currentMode === 'monster' ? 'monster_stand' : 'stand');
 
-      // Tinta mappa in base alla modalità
-      try {
-          if (this.currentMode === 'monster') {
-            this.backgroundLayer.setTint(0x4a4e69); // viola scuro
-          } else {
-            if (this.backgroundLayer.clearTint) {
-                this.backgroundLayer.clearTint();
-            } else {
-                this.backgroundLayer.setTint(0xffffff);
-            }
-          }
-      } catch(e) { console.error("Errore nel settare il tint della mappa", e); }
-
-      this.updateModeVisibility();
-      this.updateModeText();
-
-      this.localPlayerSprite.setVisible(true);
-      this.isTransforming = false;
-
-      dbg(3, 'multiplayer', 'GameScene', 'trasformazione completata localmente → modalità:', this.currentMode);
-
-      // Notifica il server
-      if (this.room) {
-        this.room.send('transform', { mode: this.currentMode });
+    // Tinta mappa in base alla modalità
+    try {
+      if (this.currentMode === 'monster') {
+        this.backgroundLayer.setTint(0x4a4e69); // viola scuro
+      } else {
+        if (this.backgroundLayer.clearTint) {
+          this.backgroundLayer.clearTint();
+        } else {
+          this.backgroundLayer.setTint(0xffffff);
+        }
       }
+    } catch (e) { console.error("Errore nel settare il tint della mappa", e); }
+
+    this.updateModeVisibility();
+    this.updateModeText();
+
+    this.localPlayerSprite.setVisible(true);
+    this.isTransforming = false;
+
+    dbg(3, 'multiplayer', 'GameScene', 'trasformazione completata localmente → modalità:', this.currentMode);
+
+    // Notifica il server
+    if (this.room) {
+      this.room.send('transform', { mode: this.currentMode });
+    }
   }
 
 
