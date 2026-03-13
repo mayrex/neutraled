@@ -12,6 +12,9 @@ export default class WaitingRoomScene extends Phaser.Scene {
 
 
   create() {
+    this.bgMusic = this.sound.add('waiting_room_music', { loop: true, volume: 0.3 });
+    this.bgMusic.play();
+
     const { width, height } = this.scale;
 
     // ── Background ─────────────────────────────────────────────────────
@@ -43,7 +46,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
     // Shift the sprite up slightly to avoid overlapping buttons
     this.humanSprite = this.add.image(width / 2, height / 2 - 20, 'human_preview').setScale(2).setVisible(false);
     this.monsterSprite = this.add.image(width / 2, height / 2 - 20, 'monster_preview').setScale(2).setVisible(false);
-    
+
     // Idle animation for sprites
     this.tweens.add({
       targets: [this.humanSprite, this.monsterSprite],
@@ -82,14 +85,14 @@ export default class WaitingRoomScene extends Phaser.Scene {
 
     // ── Interactive Buttons (My Player) ────────────────────────────────
     const btnY = height / 2 + 80;
-    
+
     // Role selection
     this.add.text(width / 2 - 150, btnY, 'Role:', { fontFamily: 'monospace', fontSize: '18px', color: '#fff' }).setOrigin(1, 0.5);
-    
+
     this.btnHuman = this.createButton(width / 2 - 60, btnY, 'HUMAN', () => {
       if (!this.amIReady) this.room.send('set_role', { role: 'human' });
     });
-    
+
     this.btnMonster = this.createButton(width / 2 + 60, btnY, 'MONSTER', () => {
       if (!this.amIReady) this.room.send('set_role', { role: 'monster' });
     });
@@ -113,12 +116,12 @@ export default class WaitingRoomScene extends Phaser.Scene {
         fontSize: '16px',
         color: sessionId === this.room.sessionId ? '#00ffcc' : '#ffffff',
       }).setOrigin(0.5, 0);
-      
+
       this.playerListTexts[sessionId] = text;
       this.playerListContainer.add(text);
-      
+
       this.updatePlayerText(player, sessionId);
-      
+
       player.onChange(() => {
         this.updatePlayerText(player, sessionId);
         if (sessionId === this.room.sessionId) {
@@ -126,7 +129,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
           this.updateButtons(player);
         }
       });
-      
+
       if (sessionId === this.room.sessionId) {
         this.updateButtons(player);
       }
@@ -163,7 +166,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
         color: '#00d4ff',
       })
       .setOrigin(0.5);
-      
+
     this.dotTimer = 0;
     this.dots = 0;
 
@@ -199,11 +202,11 @@ export default class WaitingRoomScene extends Phaser.Scene {
         btn.setText('JOYSTICK: CONNESSO').setBackgroundColor('#00aa00');
       }
     });
-    
+
     // Auto color on start if already connected from a previous scene
     const plugin = this.plugins.get('SerialBridgePlugin');
     if (plugin && plugin.connected) {
-       btn.setText('JOYSTICK: CONNESSO').setBackgroundColor('#00aa00');
+      btn.setText('JOYSTICK: CONNESSO').setBackgroundColor('#00aa00');
     }
   }
 
@@ -227,11 +230,11 @@ export default class WaitingRoomScene extends Phaser.Scene {
 
     // Make role buttons grey out if ready
     if (this.amIReady) {
-       this.btnHuman.setAlpha(0.5);
-       this.btnMonster.setAlpha(0.5);
+      this.btnHuman.setAlpha(0.5);
+      this.btnMonster.setAlpha(0.5);
     } else {
-       this.btnHuman.setAlpha(1);
-       this.btnMonster.setAlpha(1);
+      this.btnHuman.setAlpha(1);
+      this.btnMonster.setAlpha(1);
     }
 
     // Update ready button
@@ -239,7 +242,7 @@ export default class WaitingRoomScene extends Phaser.Scene {
       this.btnReady.setAlpha(0.5);
       this.btnReady.setBackgroundColor('#333');
       this.btnReady.setText('READY');
-      
+
       this.bgHuman.setAlpha(0);
       this.bgMonster.setAlpha(0);
       this.humanSprite.setVisible(false);
@@ -250,26 +253,30 @@ export default class WaitingRoomScene extends Phaser.Scene {
       this.btnReady.setText(this.amIReady ? 'CANCEL READY' : 'READY');
 
       if (myPlayer.role === 'human') {
-         this.tweens.add({ targets: this.bgHuman, alpha: 0.8, duration: 500 });
-         this.tweens.add({ targets: this.bgMonster, alpha: 0, duration: 500 });
-         this.humanSprite.setVisible(true);
-         this.monsterSprite.setVisible(false);
+        this.tweens.add({ targets: this.bgHuman, alpha: 0.8, duration: 500 });
+        this.tweens.add({ targets: this.bgMonster, alpha: 0, duration: 500 });
+        this.humanSprite.setVisible(true);
+        this.monsterSprite.setVisible(false);
       } else if (myPlayer.role === 'monster') {
-         this.tweens.add({ targets: this.bgMonster, alpha: 0.8, duration: 500 });
-         this.tweens.add({ targets: this.bgHuman, alpha: 0, duration: 500 });
-         this.humanSprite.setVisible(false);
-         this.monsterSprite.setVisible(true);
+        this.tweens.add({ targets: this.bgMonster, alpha: 0.8, duration: 500 });
+        this.tweens.add({ targets: this.bgHuman, alpha: 0, duration: 500 });
+        this.humanSprite.setVisible(false);
+        this.monsterSprite.setVisible(true);
       }
     }
   }
 
   startGame() {
     this.isTransitioning = true;
-    
+
+    if (this.bgMusic) {
+      this.bgMusic.stop();
+    }
+
     // Remove listeners so they don't fire while GameScene is running
     // In Colyseus 0.14+, we can remove the specific references. Or just wipe all for this component.
     this.room.removeAllListeners();
-    
+
     this.scene.start('GameScene', { client: this.client, room: this.room });
   }
 

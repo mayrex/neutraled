@@ -263,12 +263,11 @@ export class GameRoom extends Room {
         this.state.npcs.forEach(npc => {
             if (npc.isDead) return;
 
-            // Trova il bersaglio più vicino di ruolo OPPOSTO
             let closestTarget = null;
-            let minDist = Infinity; // Rimuoviamo il limite di aggro
+            let minDist = Infinity;
             let targetIsPlayer = false;
 
-            // Controlla i giocatori
+            // 1. Cerca il GIOCATORE di ruolo opposto più vicino (Priorità Alta)
             this.state.players.forEach(p => {
                 if (p.isDead || p.role === npc.role || !p.role) return;
                 let d = Math.hypot(p.x - npc.x, p.y - npc.y);
@@ -279,14 +278,30 @@ export class GameRoom extends Room {
                 }
             });
 
-            // Controlla altri NPC
-            this.state.npcs.forEach(n => {
-                if (n.isDead || n.role === npc.role) return;
-                let d = Math.hypot(n.x - npc.x, n.y - npc.y);
-                if (d < minDist) {
-                    minDist = d;
-                    closestTarget = n;
-                    targetIsPlayer = false;
+            // 2. Se non c'è un giocatore vicino (entro 1200 px), cerca altri NPC (Priorità Bassa)
+            if (!closestTarget || minDist > 1200) {
+                this.state.npcs.forEach(n => {
+                    if (n.isDead || n.role === npc.role) return;
+                    let d = Math.hypot(n.x - npc.x, n.y - npc.y);
+                    if (d < minDist) {
+                        minDist = d;
+                        closestTarget = n;
+                        targetIsPlayer = false;
+                    }
+                });
+            }
+
+            // --- Calcolo repulsione da altri NPC (per evitare ammassamenti) ---
+            let repX = 0;
+            let repY = 0;
+            const separationRadius = 60; // raggio entro cui si allontanano tra di loro
+            this.state.npcs.forEach(otherNpc => {
+                if (otherNpc === npc || otherNpc.isDead) return;
+                let distToOther = Math.hypot(otherNpc.x - npc.x, otherNpc.y - npc.y);
+                if (distToOther < separationRadius && distToOther > 0.01) {
+                    // Crea un vettore di repulsione inversamente proporzionale alla distanza
+                    repX += (npc.x - otherNpc.x) / distToOther;
+                    repY += (npc.y - otherNpc.y) / distToOther;
                 }
             });
 
@@ -295,14 +310,9 @@ export class GameRoom extends Room {
                 let dx = closestTarget.x - npc.x;
                 let dy = closestTarget.y - npc.y;
                 let mag = Math.hypot(dx, dy);
-                if (mag > 50) { // distanza minima
-                    npc.x += (dx / mag) * moveDist;
-                    npc.y += (dy / mag) * moveDist;
 
-                    npc.anim = Math.abs(dx) > Math.abs(dy) ? 'rightwalk' : (dy > 0 ? 'walk' : 'upwalk');
-                    if (dx < 0 && Math.abs(dx) > Math.abs(dy)) npc.anim = 'leftwalk';
-                    npc.flipX = false;
-                } else {
+                // --- Calcolo attacco (Melee) ---
+                if (mag <= 60) {
                     npc.anim = 'stand';
                     // Touch damage
                     const now = Date.now();
@@ -319,28 +329,64 @@ export class GameRoom extends Room {
                         }
                     }
                 }
-            } else {
-                // Movimento casuale pigro se non c'è bersaglio
-                if (Math.random() < 0.05) {
-                    npc.targetX = npc.x + (Math.random() * 200 - 100);
-                    npc.targetY = npc.y + (Math.random() * 200 - 100);
+
+                // Determina la direzione finale, che è un mix di INSEGUIMENTO e SEPARAZIONE
+                // Spingiti verso il target (se mag > 45, altrimenti resta a distanza e accerchialo)
+                let attrX = 0, attrY = 0;
+                if (mag > 45) {
+                    attrX = dx / mag;
+                    attrY = dy / mag;
                 }
-                if (npc.targetX !== undefined) {
-                    let dx = npc.targetX - npc.x;
-                    let dy = npc.targetY - npc.y;
-                    let mag = Math.hypot(dx, dy);
-                    if (mag > 10) {
-                        npc.x += (dx / mag) * (moveDist * 0.5); // cammina più lento
-                        npc.y += (dy / mag) * (moveDist * 0.5);
-                        npc.anim = 'walk';
-                    } else {
-                        npc.anim = 'stand';
+
+                // Combina attrazione verso il bersaglio e repulsione dai compagni
+                let finalDx = attrX + (repX * 1.5);
+                let finalDy = attrY + (repY * 1.5);
+                let finalMag = Math.hypot(finalDx, finalDy);
+
+                if (finalMag > 0.1) {
+                     npc.x += (finalDx / finalMag) * moveDist;
+                     npc.y += (finalDy / finalMag) * moveDist;
+
+                     // Setta animazione in base alla prevalenza finale
+                     npc.anim = Math.abs(finalDx) > Math.abs(finalDy) ? 'rightwalk' : (finalDy > 0 ? 'walk' : 'upwalk');
+                     if (finalDx < 0 && Math.abs(finalDx) > Math.abs(finalDy)) npc.anim = 'leftwalk';
+                     npc.flipX = false;
+                } else if (mag > 60) {
+                   // Fallback se le forze si annullano
+                   npc.anim = 'stand';
+                }
+
+            } else {
+                // Nessun bersaglio in vista: Movimento casuale o spinto dalla repulsione
+                let finalDx = repX;
+                let finalDy = repY;
+
+                if (Math.hypot(repX, repY) < 0.1) {
+                    // Vagabondaggio pigro
+                    if (Math.random() < 0.05) {
+                        npc.targetX = npc.x + (Math.random() * 200 - 100);
+                        npc.targetY = npc.y + (Math.random() * 200 - 100);
                     }
+                    if (npc.targetX !== undefined) {
+                        finalDx = npc.targetX - npc.x;
+                        finalDy = npc.targetY - npc.y;
+                    }
+                } else {
+                     // Dimentica il targetX se stiamo subendo repulsione
+                     npc.targetX = undefined;
+                }
+
+                let finalMag = Math.hypot(finalDx, finalDy);
+                if (finalMag > 10) {
+                    npc.x += (finalDx / finalMag) * (moveDist * 0.5); // cammina più lento
+                    npc.y += (finalDy / finalMag) * (moveDist * 0.5);
+                    npc.anim = 'walk';
                 } else {
                     npc.anim = 'stand';
                 }
             }
 
+            // Mantieni nei limiti del mondo
             npc.x = Math.max(WORLD_MARGIN, Math.min(WORLD_WIDTH - WORLD_MARGIN, npc.x));
             npc.y = Math.max(WORLD_MARGIN, Math.min(WORLD_HEIGHT - WORLD_MARGIN, npc.y));
         });

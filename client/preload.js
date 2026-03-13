@@ -62,6 +62,7 @@ export default class Preload extends Phaser.Scene {
 
         this.load.audio('menu_music', './scene1/menu.mp3');
 
+
         // === SCENE 2 ===
         this.load.image('space_background_frame1', './scene2/scene2_space_background_frame1.png');
         this.load.image('space_background_frame2', './scene2/scene2_space_background_frame2.png');
@@ -177,7 +178,7 @@ export default class Preload extends Phaser.Scene {
         this.load.image('monster', './scene8/monster_player.png');
         this.load.image('human_preview', './scene3/scene3_player.png');
         this.load.image('monster_preview', './scene8/monster_player.png');
-        
+
         // Collectibles used in GameScene.js
         this.load.image('collectible_human', './oggetti ambientali/ABunchOfFlowers.png');
         this.load.image('collectible_monster', './oggetti ambientali/Teschio.png');
@@ -185,6 +186,10 @@ export default class Preload extends Phaser.Scene {
 
         // Transformation
         this.load.spritesheet('evoluzione', './evoluzione/evoluzione.png', { frameWidth: 64, frameHeight: 64 });
+
+        // Multiplayer Music
+        this.load.audio('waiting_room_music', './multiplayer/Waiting-for-you-to-connect.mp3');
+        this.load.audio('gamescene_music', './multiplayer/Climbing a huge mountain.mp3');
     }
 
     create() {
@@ -265,6 +270,113 @@ export default class Preload extends Phaser.Scene {
             key: 'mostro3_anim',
             frames: this.anims.generateFrameNumbers('mostro3', { start: 0, end: 1 }),
             frameRate: 4,
+            repeat: -1
+        });
+
+        // Player animations
+        if (!this.anims.exists('upwalk')) this.anims.create({
+            key: 'upwalk',
+            frames: [
+                { key: 'upwalk_frame1' },
+                { key: 'upwalk_frame2' },
+                { key: 'upwalk_frame1' },
+                { key: 'upwalk_frame3' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('leftwalk')) this.anims.create({
+            key: 'leftwalk',
+            frames: [
+                { key: 'leftwalk_frame1' },
+                { key: 'leftwalk_frame2' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('rightwalk')) this.anims.create({
+            key: 'rightwalk',
+            frames: [
+                { key: 'rightwalk_frame1' },
+                { key: 'rightwalk_frame2' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('stand')) this.anims.create({
+            key: 'stand',
+            frames: [
+                { key: 'player' },
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('walk')) this.anims.create({
+            key: 'walk',
+            frames: [
+                { key: 'player' },
+                { key: 'downwalk_frame2' },
+                { key: 'downwalk_frame3' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        // Monster player animations
+        if (!this.anims.exists('monster_upwalk')) this.anims.create({
+            key: 'monster_upwalk',
+            frames: [
+                { key: 'monster_player_upwalking_frame2' },
+                { key: 'monster_player_upwalking_frame1' },
+                { key: 'monster_player_upwalking_frame3' },
+                { key: 'monster_player_upwalking_frame1' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('monster_downwalk')) this.anims.create({
+            key: 'monster_downwalk',
+            frames: [
+                { key: 'monster_player_downwalking_frame2' },
+                { key: 'monster_player_downwalking_frame1' },
+                { key: 'monster_player_downwalking_frame3' },
+                { key: 'monster_player_downwalking_frame1' }
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('monster_rightwalk')) this.anims.create({
+            key: 'monster_rightwalk',
+            frames: [
+                { key: 'monster_player_rightwalking_frame1' },
+                { key: 'monster_player_rightwalking_frame2' },
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('monster_leftwalk')) this.anims.create({
+            key: 'monster_leftwalk',
+            frames: [
+                { key: 'monster_player_leftwalking_frame1' },
+                { key: 'monster_player_leftwalking_frame2' },
+            ],
+            frameRate: 6,
+            repeat: -1
+        });
+
+        if (!this.anims.exists('monster_stand')) this.anims.create({
+            key: 'monster_stand',
+            frames: [
+                { key: 'monster_player_downwalking_frame1' },
+            ],
+            frameRate: 6,
             repeat: -1
         });
 
