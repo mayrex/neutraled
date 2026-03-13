@@ -418,6 +418,8 @@ export default class Scene6 extends Phaser.Scene {
             );
 
             this.time.delayedCall(2000, () => {
+                this.registry.set('player_level', (this.registry.get('player_level') || 1) + 1);
+                
 
                 this.registry.set(
                     "enemy1_defeated",

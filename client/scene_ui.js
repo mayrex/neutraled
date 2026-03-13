@@ -16,7 +16,7 @@ export default class SceneUI extends Phaser.Scene {
         // Testo del livello
         this.levelText = this.add.text(uiX, uiY, this.getLevelString(), {
             fontFamily: '"Press Start 2P", Courier, monospace',
-            fontSize: '18px',
+            fontSize: '14px',
             color: '#ffd700',
             stroke: '#000000',
             strokeThickness: 4,

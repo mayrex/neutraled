@@ -170,6 +170,7 @@ export default class Scene5 extends Phaser.Scene {
         if (this.registry.get('enemy1_defeated')) {
             this.player.x = this.registry.get('scene5_player_x');
             this.player.y = this.registry.get('scene5_player_y');
+            
         }
 
         if (this.registry.get('enemy2_defeated')) {

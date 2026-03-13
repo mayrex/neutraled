@@ -103,7 +103,7 @@ export default class Scene8 extends Phaser.Scene {
         this.physics.add.collider(this.player, this.npc1);
 
 
-        this.npc2 = this.physics.add.staticSprite(this.npc2_x, this.npc2_y, 'npc1').setScale(0.5);;
+        this.npc2 = this.physics.add.staticSprite(this.npc2_x, this.npc2_y, 'npc1').setScale(1);;
         this.physics.add.collider(this.player, this.npc2)
 
 
