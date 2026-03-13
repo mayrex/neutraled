@@ -24,7 +24,7 @@ export default class Preload extends Phaser.Scene {
             fontSize: '18px',
             fill: '#ffffff'
         }).setOrigin(0.5);
-
+ 
         this.load.on('progress', (value) => {
             percentText.setText(parseInt(value * 100) + '%');
             progressBar.clear();
@@ -163,11 +163,25 @@ export default class Preload extends Phaser.Scene {
         this.load.spritesheet('tifone_tornado', './scene15/tifone_tornado_animation.png', { frameWidth: 36, frameHeight: 50 });
         this.load.audio('scene15_audio', './sounds/scene15_fight_soundtrack.mp3');
 
-        // === OGGETTI AMBIENTALI ===
         this.load.image('Cespuglio', './oggetti ambientali/Cespuglio.png');
         this.load.image('ABunchOfFlowers', './oggetti ambientali/ABunchOfFlowers.png');
         this.load.image('Teschio', './oggetti ambientali/Teschio.png');
         this.load.image('chebellaLANTERNA', './oggetti ambientali/chebellaLANTERNA.png');
+
+        // === MULTIPLAYER ASSETS ===
+        this.load.tilemapTiledJSON('mp_map', './multiplayer/Tilemap mp.tmj');
+        this.load.image('mp_tiles', './multiplayer/ezgif-819d516e06a53a6e (1) (1).png');
+        this.load.image('monster', './scene8/monster_player.png');
+        this.load.image('human_preview', './scene3/scene3_player.png');
+        this.load.image('monster_preview', './scene8/monster_player.png');
+        
+        // Collectibles used in GameScene.js
+        this.load.image('collectible_human', './oggetti ambientali/ABunchOfFlowers.png');
+        this.load.image('collectible_monster', './oggetti ambientali/Teschio.png');
+        this.load.image('collectible_both', './oggetti ambientali/Cespuglio.png');
+
+        // Transformation
+        this.load.spritesheet('evoluzione', './evoluzione/evoluzione.png', { frameWidth: 64, frameHeight: 64 });
     }
 
     create() {
@@ -250,6 +264,44 @@ export default class Preload extends Phaser.Scene {
             frameRate: 4,
             repeat: -1
         });
+
+        // === GLOBAL ANIMATIONS ===
+
+        // Transformation
+        if (!this.anims.exists('evoluzione_anim')) {
+            this.anims.create({
+                key: 'evoluzione_anim',
+                frames: this.anims.generateFrameNumbers('evoluzione', { start: 0, end: 20 }),
+                frameRate: 15,
+                repeat: 0
+            });
+        }
+
+        // Human Animations (Global)
+        const createHumanAnim = (key, frames, rate = 6) => {
+            if (!this.anims.exists(key)) {
+                this.anims.create({ key, frames: frames.map(k => ({ key: k })), frameRate: rate, repeat: -1 });
+            }
+        };
+
+        createHumanAnim('upwalk', ['upwalk_frame1', 'upwalk_frame2', 'upwalk_frame1', 'upwalk_frame3']);
+        createHumanAnim('leftwalk', ['leftwalk_frame1', 'leftwalk_frame2']);
+        createHumanAnim('rightwalk', ['rightwalk_frame1', 'rightwalk_frame2']);
+        createHumanAnim('walk', ['player', 'downwalk_frame2', 'downwalk_frame3']);
+        createHumanAnim('stand', ['player']);
+
+        // Monster Animations (Global)
+        const createMonsterAnim = (key, frames, rate = 6) => {
+            if (!this.anims.exists(key)) {
+                this.anims.create({ key, frames: frames.map(k => ({ key: k })), frameRate: rate, repeat: -1 });
+            }
+        };
+
+        createMonsterAnim('monster_upwalk', ['monster_player_upwalking_frame1', 'monster_player_upwalking_frame2', 'monster_player_upwalking_frame3']);
+        createMonsterAnim('monster_leftwalk', ['monster_player_left_frame1', 'monster_player_left_frame2']);
+        createMonsterAnim('monster_rightwalk', ['monster_player_right_frame1', 'monster_player_right_frame2']);
+        createMonsterAnim('monster_downwalk', ['monster_player_downwalking_frame1', 'monster_player_downwalking_frame2', 'monster_player_downwalking_frame3']);
+        createMonsterAnim('monster_stand', ['monster_player_stand_frame']);
 
         this.scene.start('MenuScene');
     }
