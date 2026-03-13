@@ -88,7 +88,7 @@ export default class MenuScene extends Phaser.Scene {
             .setDepth(4)
             .setOrigin(0.5)
             .setScale(6)
-            .setInteractive({ useHandCursor: true });
+            .setInteractive({ useHandCursor: true, pixelPerfect: true });
 
         btn.anims.stop(); // nessuna animazione automatica
         btn.setFrame(0);  // forza frame statico iniziale
