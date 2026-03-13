@@ -44,6 +44,7 @@ export default class MenuScene extends Phaser.Scene {
         this.createClouds();
         this.createSecretCharacter();
         this.createUI();
+        this.sound.play("menu", { loop: true });
     }
     update() {
         this.updateClouds();

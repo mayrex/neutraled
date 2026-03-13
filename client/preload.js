@@ -24,7 +24,7 @@ export default class Preload extends Phaser.Scene {
             fontSize: '18px',
             fill: '#ffffff'
         }).setOrigin(0.5);
-
+        this.load.audio("menu", "/scene1/menu.mp3")
         this.load.on('progress', (value) => {
             percentText.setText(parseInt(value * 100) + '%');
             progressBar.clear();
