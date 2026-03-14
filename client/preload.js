@@ -68,6 +68,9 @@ export default class Preload extends Phaser.Scene {
         this.load.image('space_background_frame2', './scene2/scene2_space_background_frame2.png');
         this.load.image('secret_character', './scene2/scene2_secret_character.png');
         this.load.audio('secret_character_talking_sound', './scene2/scene2_secret_character_talking_sound.mp3');
+        for (let i = 1; i <= 17; i++) {
+            this.load.audio(`scene2_audio_${i}`, `./scene2/introduzione/${i}.mp3`);
+        }
 
         // === SCENE 3 ===
         this.load.tilemapTiledJSON('map', './scene3/tile_map/map.json');

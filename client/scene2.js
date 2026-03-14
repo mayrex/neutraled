@@ -57,6 +57,7 @@ export default class Scene2 extends Phaser.Scene {
         this.textObj = null;
         this.arrowObj = null;
         this.enterKey = null;
+        this.currentAudio = null;
 
         this.W = 800;
         this.H = 600;
@@ -150,6 +151,7 @@ export default class Scene2 extends Phaser.Scene {
         if (!justDown) return;
 
         if (this.waitingEnter) {
+            if (this.currentAudio) this.currentAudio.stop();
             this.scene.start('Scene3');
             return;
         }
@@ -170,6 +172,14 @@ export default class Scene2 extends Phaser.Scene {
         this.currentLetter = 0;
         this.textObj.setText('');
         this.arrowObj.setVisible(false).setAlpha(1);
+
+        if (this.currentAudio) {
+            this.currentAudio.stop();
+        }
+        if (this.cache.audio.exists(`scene2_audio_${idx + 1}`)) {
+            this.currentAudio = this.sound.add(`scene2_audio_${idx + 1}`);
+            this.currentAudio.play();
+        }
 
         this.updateImage(slide);
         this.startTyping(slide.text);
@@ -232,6 +242,7 @@ export default class Scene2 extends Phaser.Scene {
     nextSlide() {
         this.currentSlide++;
         if (this.currentSlide >= this.SLIDES.length) {
+            if (this.currentAudio) this.currentAudio.stop();
             this.scene.start('Scene3');
             return;
         }
