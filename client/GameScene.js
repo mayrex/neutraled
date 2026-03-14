@@ -30,6 +30,10 @@ export default class GameScene extends Phaser.Scene {
     // Livello base (sfondo/struttura base)
     this.backgroundLayer = map.createLayer('Livello tile 1', tileset, 0, 0);
 
+    // Livello collisioni (muri, fiume)
+    this.wallsLayer = map.createLayer('Livello tile 2', tileset, 0, 0);
+    this.wallsLayer.setCollisionByExclusion([-1]);
+
     // ─── Networking State ───────────────────────────────────────────────────
     this.otherPlayers = new Map(); // Using Map like reference
     this.npcs = new Map(); // Using Map for ATMs
@@ -137,6 +141,9 @@ export default class GameScene extends Phaser.Scene {
       this.room.send('hit', { targetId: remoteSprite.sessionId, weaponType: proj.weaponType });
     });
 
+    // Usa this.wallsLayer per i proiettili
+    this.physics.add.collider(this.localProjectiles, this.wallsLayer, (p) => p.destroy());
+
     // Hit detection: Local Projectiles vs NPCs
     this.physics.add.overlap(this.localProjectiles, this.npcGroup, (proj, npcSprite) => {
       proj.destroy();
@@ -196,9 +203,9 @@ export default class GameScene extends Phaser.Scene {
         // Remote player is poisoned
         let remoteObj = null;
         this.remotePlayersGroup.getChildren().forEach(sprite => {
-            if (sprite.sessionId === data.sessionId) {
-                remoteObj = { sprite: sprite };
-            }
+          if (sprite.sessionId === data.sessionId) {
+            remoteObj = { sprite: sprite };
+          }
         });
         if (remoteObj) {
           remoteObj.sprite.setTint(0x00ff00);
@@ -254,6 +261,8 @@ export default class GameScene extends Phaser.Scene {
       };
       if (texture === 'player' && npcObj.sprite.anims) npcObj.sprite.play('stand');
       this.npcs.set(npcId, npcObj);
+
+      this.physics.add.collider(npcObj.sprite, this.wallsLayer);
 
       npc.onChange(() => {
         const upNpc = this.npcs.get(npcId);
@@ -356,7 +365,11 @@ export default class GameScene extends Phaser.Scene {
         // Tinta mappa: scura in modalità mostro fin da subito
         if (this.currentMode === 'monster') {
           this.backgroundLayer.setTint(0x4a4e69);
+          if (this.wallsLayer) this.wallsLayer.setTint(0x4a4e69);
         }
+
+        // Collisioni Mappa locale vs Fiume/Muri
+        this.physics.add.collider(this.localPlayerSprite, this.wallsLayer);
 
         // Overlap collezionabili (solo dopo che lo sprite locale esiste)
         this.physics.add.overlap(
@@ -396,6 +409,8 @@ export default class GameScene extends Phaser.Scene {
         }
         if (texture === 'player' && remoteObj.sprite.anims) remoteObj.sprite.play('stand');
         this.otherPlayers.set(sessionId, remoteObj);
+
+        this.physics.add.collider(remoteObj.sprite, this.wallsLayer);
       }
       player.onChange(() => {
         // If it's US, we ignore server position updates! We are authoritative locally.
@@ -788,14 +803,14 @@ export default class GameScene extends Phaser.Scene {
     try {
       if (this.currentMode === 'monster') {
         this.backgroundLayer.setTint(0x4a4e69); // viola scuro
+        if (this.wallsLayer) this.wallsLayer.setTint(0x4a4e69);
       } else {
-        if (this.backgroundLayer.clearTint) {
-          this.backgroundLayer.clearTint();
-        } else {
-          this.backgroundLayer.setTint(0xffffff);
-        }
+        this.backgroundLayer.clearTint();
+        if (this.wallsLayer) this.wallsLayer.clearTint();
       }
-    } catch (e) { console.error("Errore nel settare il tint della mappa", e); }
+    } catch (e) {
+      console.warn("Mappa non trovata per il tint", e);
+    }
 
     this.updateModeVisibility();
     this.updateModeText();

@@ -173,7 +173,7 @@ export default class Preload extends Phaser.Scene {
         this.load.image('chebellaLANTERNA', './oggetti ambientali/chebellaLANTERNA.png');
 
         // === MULTIPLAYER ASSETS ===
-        this.load.tilemapTiledJSON('mp_map', './multiplayer/Tilemap mp.tmj');
+        this.load.tilemapTiledJSON('mp_map', './multiplayer/Tilemap mp2..tmj');
         this.load.image('mp_tiles', './multiplayer/ezgif-819d516e06a53a6e (1) (1).png');
         this.load.image('monster', './scene8/monster_player.png');
         this.load.image('human_preview', './scene3/scene3_player.png');

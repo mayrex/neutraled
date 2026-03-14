@@ -25,9 +25,6 @@ export default class Scene5 extends Phaser.Scene {
         this.enemy2_y = 16 * 32;
 
         this.isEnemy2Defeated = null;
-
-
-
         this.is_camera_moving = true;
         this.dialogueActive = false;
         this.dialogueIndex = 0;
@@ -170,7 +167,7 @@ export default class Scene5 extends Phaser.Scene {
         if (this.registry.get('enemy1_defeated')) {
             this.player.x = this.registry.get('scene5_player_x');
             this.player.y = this.registry.get('scene5_player_y');
-            
+
         }
 
         if (this.registry.get('enemy2_defeated')) {
