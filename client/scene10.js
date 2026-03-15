@@ -21,9 +21,9 @@ export default class Scene10 extends Phaser.Scene {
         this.dialogueActive = false;
 
         this.guide_text_string = [
-            'poi ci penso',
-            'sto pensando',
-            'vedo dopo con paolo'
+            'Non avresti mai dovuto varcare questo confine.',
+            'Gli umani hanno portato solo distruzione.',
+            'Ora ne pagherai il prezzo, preparati a combattere!'
         ]
         this.dialogueIndex = 0;
 
@@ -74,6 +74,11 @@ export default class Scene10 extends Phaser.Scene {
         this.player = this.physics.add.sprite(spawnX, spawnY, 'player');
         this.physics.add.collider(this.player, this.wallsLayer3);
         this.wallsLayer3.setCollisionByExclusion([-1])
+
+        if (this.registry.get('returning_from_scene12')) {
+            this.player.x = (this.registry.get('scene10_exit_x') || (111 * 16)) - 30;
+            this.registry.set('returning_from_scene12', false);
+        }
 
 
         // NPC
@@ -182,6 +187,7 @@ export default class Scene10 extends Phaser.Scene {
         }
 
         if (this.player.x > 111 * 16) {
+            this.registry.set('scene10_exit_x', this.player.x);
             this.scene.start('Scene12');
         }
     }
@@ -196,6 +202,10 @@ export default class Scene10 extends Phaser.Scene {
                 18 * 16 - 15,
                 22 * 16,
             )
+            // Fix 11: Allowance to go back to scene 8
+            if (this.player.x < 8) {
+                this.scene.start('Scene8');
+            }
         } else {
             this.player.y = Phaser.Math.Clamp(
                 this.player.y,
@@ -234,7 +244,11 @@ export default class Scene10 extends Phaser.Scene {
 
 
         if (!this.registry.get('is_player_human')) {
-            anim = 'monster_' + anim;
+            if (anim === 'walk') {
+                anim = 'monster_downwalk';
+            } else if (anim !== null) {
+                anim = 'monster_' + anim;
+            }
         }
 
 

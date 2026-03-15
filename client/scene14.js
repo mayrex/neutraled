@@ -18,16 +18,16 @@ export default class Scene14 extends Phaser.Scene {
         this.dialogueActive = false;
 
         this.cartello_text_string = [
-            'poi ci penso',
-            'sto pensando',
-            'vedo dopo con paolo',
-            'sto pensando',
-            'si lo so penso lentamente',
-            'mi serve tempo',
-            'ja non mettermi fretta',
-            'pensa a giocare',
-            'ooo ma chi li legge sti cosi',
-            'stop'
+            'oltre questo luogo si trova il mostro più forte',
+            'da sempre temuto da tutti i suoi nemici',
+            'il grande Tifone',
+            'il re dei mostri',
+            'chiunque lo abbia sfidato non è mai tornato indietro',
+            'lui non attacca solo la tua anima',
+            'ma anche il tuo corpo',
+            'e la tua mente',
+            'sei sicuro di volerlo affrontare?',
+            'Oltrepassa questo sentiero e incontra il tuo destino.'
         ]
         this.dialogueIndex = 0;
 
@@ -52,17 +52,17 @@ export default class Scene14 extends Phaser.Scene {
     }
 
 
-    
+
 
     create() {
 
-        
+
         if (!this.scene.isActive('SceneUI')) {
             this.scene.launch('SceneUI');
         }
         this.scene.bringToTop('SceneUI');
-    
-    
+
+
 
 
         this.sound.stopAll();
@@ -122,10 +122,10 @@ export default class Scene14 extends Phaser.Scene {
             "",
             {
                 fontSize: "16px",
-                color: "#ffffff", 
-            fontFamily: 'Courier, monospace',
-            stroke: '#000000',
-            strokeThickness: 4,
+                color: "#ffffff",
+                fontFamily: 'Courier, monospace',
+                stroke: '#000000',
+                strokeThickness: 4,
                 wordWrap: { width: 500 }
             }
         ).setScrollFactor(0).setDepth(11).setVisible(false).setOrigin(0.5);

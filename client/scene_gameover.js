@@ -10,6 +10,8 @@ export default class SceneGameOver extends Phaser.Scene {
 
     create() {
         this.cameras.main.setBackgroundColor('#000000');
+        this.sound.stopAll();
+        this.sound.play('gameover_audio', { loop: false });
 
         this.add.text(400, 250, 'GAME OVER', {
             fontFamily: '"Press Start 2P", Courier, monospace',

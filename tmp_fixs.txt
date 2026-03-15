@@ -1,0 +1,16 @@
+fix 1: add a soundtrack to scene 3,
+fix 2: add a soundtrack to scene 4,
+fix 3: change the text in scene 4 from 'esci dal castello' to 'segui il sentiero',
+fix 4: change the text in scene 3 from 'esci dal castello' to 'segui il sentiero',
+fix 5: in scene 5,make 2 different dialogue for enemy1 and enemy2,
+fix 6: when player defeats enemy1,the level showed should be 2,
+fix 7: when the gameover scene starts the soundtrack should stop,and change to 'gameover_soundtrack',
+fix 8: in scene 8,i sould change the text of the dialogue to something according to the plot,
+fix 9: in scene 8,the hitbox of the npc should be much smaller,
+fix 10: in scene 10,add 'monster_downwal' to the animation,
+fix 11:  in scene 10 the player should be allowed to get back to scene 8,
+fix 12:in scene 12,when player goes back to scene 10,he should go back to the coordinates of when he changed to scene 12 (x-=30),
+fix 13:in scene 15,the player shoulden't be allowed to shoot until tifone is went up,
+fix 14:every tifone attack should be faster be always dodgable for the player,
+fix 15:in scene 15,when the player defeats tifone,it should start the ending animation
+fix 16:in scene 16,when the ending animation is over it should appears the win schermate

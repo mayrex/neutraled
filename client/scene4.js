@@ -365,7 +365,7 @@ export default class Scene4 extends Phaser.Scene {
             (!this.bullet4 || !this.bullet4.active)
         ) {
             this.time.delayedCall(1000, () => {
-                this.guide_text.setText('complimenti hai completato il tutorial!\nora esci dal castello e neutralizza quei mostri!');
+                this.guide_text.setText('complimenti hai completato il tutorial!\nora segui il sentiero e neutralizza quei mostri!');
                 this.time.delayedCall(7000, () => {
 
                     this.scene.start('Scene3');

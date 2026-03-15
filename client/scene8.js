@@ -35,15 +35,21 @@ export default class Scene8 extends Phaser.Scene {
         this.guide_text = null;
 
         this.guide_text_string = [
-            "NPC: Finalmente ti trovo.",
-            "NPC: Ho sentito parlare di te.",
-            "NPC: Vediamo se sei forte davvero."
+            "L'Oscurità si avvicina.",
+            "Solo chi possiede il vero potere può proseguire.",
+            "Mostrami cosa sai fare!"
         ];
 
         this.guide_text_string1 = [
-            "haha,sei ",
-            "fr.",
-            "NPC: Vediamo se sei forte davvero."
+            "da qui possono proseguire solo i mostri.",
+            "l'unico modo per sconfiggere chi ti si porrà davanti è quello di diventare un mostro.",
+            "solo così potrai sconfiggere tifone",
+            'lascia che ti trasformi in un mostro e combatti per gli umani',
+            'non tememre,trilly ti aspetta...',
+            'ah un ultima cosa',
+            'da ora in poi dovrai anche attaccare',
+            'è ovvio che lo sai fare',
+            '(usa invio per attaccare i mostri mentre li combatti)'
         ];
 
         this.player_is_human = true;
@@ -52,17 +58,17 @@ export default class Scene8 extends Phaser.Scene {
 
     }
 
-    
+
 
     create() {
 
-        
+
         if (!this.scene.isActive('SceneUI')) {
             this.scene.launch('SceneUI');
         }
         this.scene.bringToTop('SceneUI');
-    
-    
+
+
 
 
         //INPUT
@@ -100,10 +106,12 @@ export default class Scene8 extends Phaser.Scene {
 
         // ===== NPC ===== //
         this.npc1 = this.physics.add.staticSprite(this.npc1_x, this.npc1_y, 'enemy3_frame1').setScale(3);
+        this.npc1.body.setSize(20, 20); // Make hitbox smaller (Fix 9)
         this.physics.add.collider(this.player, this.npc1);
 
 
-        this.npc2 = this.physics.add.staticSprite(this.npc2_x, this.npc2_y, 'npc1').setScale(1);;
+        this.npc2 = this.physics.add.staticSprite(this.npc2_x, this.npc2_y, 'npc1').setScale(1);
+        this.npc2.body.setSize(20, 20); // Make hitbox smaller (Fix 9)
         this.physics.add.collider(this.player, this.npc2)
 
 
@@ -347,10 +355,10 @@ export default class Scene8 extends Phaser.Scene {
                 this.guide_text_string[this.dialogueIndex],
                 {
                     fontSize: '20px',
-                    color: '#ffffff', 
-            fontFamily: 'Courier, monospace',
-            stroke: '#000000',
-            strokeThickness: 4,
+                    color: '#ffffff',
+                    fontFamily: 'Courier, monospace',
+                    stroke: '#000000',
+                    strokeThickness: 4,
                     align: 'center',
                     wordWrap: { width: 280 }
                 }
@@ -393,10 +401,10 @@ export default class Scene8 extends Phaser.Scene {
                 this.guide_text_string1[this.dialogueIndex],
                 {
                     fontSize: '20px',
-                    color: '#ffffff', 
-            fontFamily: 'Courier, monospace',
-            stroke: '#000000',
-            strokeThickness: 4,
+                    color: '#ffffff',
+                    fontFamily: 'Courier, monospace',
+                    stroke: '#000000',
+                    strokeThickness: 4,
                     align: 'center',
                     wordWrap: { width: 280 }
                 }

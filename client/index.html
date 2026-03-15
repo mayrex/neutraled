@@ -18,9 +18,80 @@
         overflow: hidden;
       }
       canvas { display: block; }
+      
+      /* Smartphone Virtual Controls */
+      #virtual-controls {
+        display: none; /* Shows only on touch devices */
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none; /* Let clicks pass through empty areas */
+        z-index: 1000;
+      }
+      .v-dpad {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        width: 150px;
+        height: 150px;
+        pointer-events: auto;
+      }
+      .v-btn {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.7);
+        border-radius: 10px;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-weight: bold;
+        user-select: none;
+        touch-action: none; /* Prevent scroll on drag */
+      }
+      .v-btn:active {
+        background: rgba(255, 255, 255, 0.8);
+      }
+      
+      /* D-pad positioning */
+      #btn-w { top: 0; left: 50px; }
+      #btn-s { bottom: 0; left: 50px; }
+      #btn-a { top: 50px; left: 0; }
+      #btn-d { top: 50px; right: 0; }
+      
+      /* Action Buttons */
+      .v-actions {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        width: 150px;
+        height: 150px;
+        pointer-events: auto;
+      }
+      #btn-enter { top: 0; right: 0; border-radius: 50%; width: 60px; height: 60px; }
+      #btn-b { bottom: 0; left: 0; border-radius: 50%; width: 60px; height: 60px; }
     </style>
   </head>
   <body>
+    <!-- DOM Overlay for Mobile -->
+    <div id="virtual-controls">
+      <div class="v-dpad">
+        <div class="v-btn" id="btn-w">W</div>
+        <div class="v-btn" id="btn-s">S</div>
+        <div class="v-btn" id="btn-a">A</div>
+        <div class="v-btn" id="btn-d">D</div>
+      </div>
+      <div class="v-actions">
+        <!-- ENTER (A), B (B) -->
+        <div class="v-btn" id="btn-enter">A</div>
+        <div class="v-btn" id="btn-b">B</div>
+      </div>
+    </div>
+
     <script type="module" src="/main.js"></script>
   </body>
 </html>

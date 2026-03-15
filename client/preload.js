@@ -73,6 +73,7 @@ export default class Preload extends Phaser.Scene {
         }
 
         // === SCENE 3 ===
+        this.load.audio('scene3_audio', './sounds/scene3_soundtrack.mp3');
         this.load.tilemapTiledJSON('map', './scene3/tile_map/map.json');
         this.load.image('tiles', './scene3/tile_map/spritesheet.png');
         this.load.image('player', './scene3/scene3_player.png');
@@ -108,6 +109,7 @@ export default class Preload extends Phaser.Scene {
         this.load.image('monster_player_left_frame2', './scene8/monster_player_left_frame2.png');
 
         // === SCENE 4 ===
+        this.load.audio('scene4_audio', './sounds/scene4_soundtrack.mp3');
         this.load.image('bullet1', './scene4/scene4_bullet1.png');
         this.load.image('player_shield', './scene4/scene4_player_shield.png');
 
@@ -168,6 +170,7 @@ export default class Preload extends Phaser.Scene {
         this.load.image('tifone_onda_frontale', './scene15/tifone_onda_frontale.png');
         this.load.spritesheet('tifone_tornado', './scene15/tifone_tornado_animation.png', { frameWidth: 36, frameHeight: 50 });
         this.load.audio('scene15_audio', './sounds/scene15_fight_soundtrack.mp3');
+        this.load.audio('gameover_audio', './sounds/gameover_audio.mp3');
 
         // === OGGETTI AMBIENTALI ===
         this.load.image('Cespuglio', './oggetti ambientali/Cespuglio.png');

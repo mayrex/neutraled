@@ -40,12 +40,12 @@ export default class Scene15 extends Phaser.Scene {
         this.player_damage = 1;
         this.tifone_damage = 5;
         this.phase0_tifone_attackrate = 300;//ms
-        this.phase1_tifone_attackrate = 500;// ms
-        this.phase2_tifone_attackrate = 5000 // ms
+        this.phase1_tifone_attackrate = 400;// ms
+        this.phase2_tifone_attackrate = 4000 // ms
         this.phase3_tifone_attackrate = this.phase2_tifone_attackrate * 2// in ms
-        this.phase4_tifone_attackrate = 300; //ms
-        this.phase5_tifone_attackrate = 3000; //ms
-        this.phase6_tifone_attackrate = 1000; //ms
+        this.phase4_tifone_attackrate = 250; //ms
+        this.phase5_tifone_attackrate = 2000; //ms
+        this.phase6_tifone_attackrate = 700; //ms
         this.nextPlayerShot = 0;
 
 
@@ -1209,6 +1209,7 @@ export default class Scene15 extends Phaser.Scene {
 
 
     handle_player_attacks() {
+        if (!this.can_player_move) return;
 
         if (Phaser.Input.Keyboard.JustDown(this.enterKey)) {
 
@@ -1315,7 +1316,7 @@ export default class Scene15 extends Phaser.Scene {
 
                     const dialogueBox = this.add.rectangle(400, 300, 700, 200, 0x000000).setOrigin(0.5).setDepth(15);
                     const dialogueBox_border = this.add.rectangle(400, 300, 680, 180).setStrokeStyle(2, 0xffffff).setOrigin(0.5).setDepth(16);
-                    const dialogue_text = [
+                    this.dialogue_text = [
                         'oh mio eroe',
                         'sei troppo aura',
                         'menomale che ci sei tu',
@@ -1323,9 +1324,9 @@ export default class Scene15 extends Phaser.Scene {
                         ...((this.registry.get('is_player_human') === false) ? ['(sei un mostro ma per me sei okay)'] : [])
                     ];
 
-                    let index_dialogue = 0;
+                    this.index_dialogue = 0;
 
-                    const dialogue_text_obj = this.add.text(400, 300, dialogue_text[index_dialogue], {
+                    this.dialogue_text_obj = this.add.text(400, 300, this.dialogue_text[this.index_dialogue], {
                         fontFamily: 'Courier, monospace',
                         fontSize: '32px',
                         color: '#ffffff',
@@ -1334,14 +1335,13 @@ export default class Scene15 extends Phaser.Scene {
                         align: 'center'
                     }).setOrigin(0.5).setDepth(17);
 
-                    this.input.keyboard.on('keydown-ENTER', () => {
-                        index_dialogue++;
-                        if (index_dialogue < dialogue_text.length) {
-                            dialogue_text_obj.setText(dialogue_text[index_dialogue]);
-                        } else {
-                            this.scene.start('SceneGameWin');
-                        }
-                    });
+                } else if (Phaser.Input.Keyboard.JustDown(this.enterKey)) {
+                    this.index_dialogue++;
+                    if (this.index_dialogue < this.dialogue_text.length) {
+                        this.dialogue_text_obj.setText(this.dialogue_text[this.index_dialogue]);
+                    } else {
+                        this.scene.start('SceneGameWin');
+                    }
                 }
 
             }

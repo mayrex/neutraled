@@ -29,8 +29,16 @@ export default class Scene5 extends Phaser.Scene {
         this.dialogueActive = false;
         this.dialogueIndex = 0;
         this.rect_for_textbox = null;
-        this.guide_text = null;
-        this.guide_text_string = ['vabbe poi ci penso 1', 'ja giuro che dopo ci penso 2', 'sto ancora pensando 3'];
+        this.guide_text_string1 = [
+            'chi va la!?', 
+            'non pensavo saresti arrivato fin qui vivo',
+            'ma il tuo viaggio finirà adesso!'
+        ];
+        this.guide_text_string2 = [
+            'sei forte per essere umano', 
+            'ma non potrai mai sconfiggere il grande Tifone', 
+            'fatti sotto!'
+        ];
         this.eventTriggered1 = false;
         this.eventTriggered2 = false;
     }
@@ -232,7 +240,11 @@ export default class Scene5 extends Phaser.Scene {
         }
 
         if (this.dialogueActive && Phaser.Input.Keyboard.JustDown(this.enterKey)) {
-            this.nextDialogueLine();
+            if (this.eventTriggered1 && !this.eventTriggered2) {
+                this.nextDialogueLine1();
+            } else if (this.eventTriggered2) {
+                this.nextDialogueLine2();
+            }
         }
 
 
@@ -324,14 +336,14 @@ export default class Scene5 extends Phaser.Scene {
                 this.enemy1_x,
                 this.enemy1_y + 100,
                 300,
-                50,
+                120,
                 0x000000
             ).setOrigin(0.5).setStrokeStyle(2, 0xffffff);
 
             this.guide_text = this.add.text(
                 this.rect_for_textbox.x,
                 this.rect_for_textbox.y,
-                this.guide_text_string[this.dialogueIndex],
+                this.guide_text_string1[this.dialogueIndex],
                 {
                     fontSize: '20px',
                     color: '#ffffff',
@@ -368,16 +380,16 @@ export default class Scene5 extends Phaser.Scene {
 
             this.rect_for_textbox = this.add.rectangle(
                 this.enemy2_x,
-                this.enemy2_y + 90,
+                this.enemy2_y + 100,
                 300,
-                50,
+                120,
                 0x000000
             ).setOrigin(0.5).setStrokeStyle(2, 0xffffff);
 
             this.guide_text = this.add.text(
                 this.rect_for_textbox.x,
                 this.rect_for_textbox.y,
-                this.guide_text_string[this.dialogueIndex],
+                this.guide_text_string2[this.dialogueIndex],
                 {
                     fontSize: '20px',
                     color: '#ffffff',
@@ -394,38 +406,40 @@ export default class Scene5 extends Phaser.Scene {
         this.is_camera_moving = false;
     }
 
-    nextDialogueLine() {
-
+    nextDialogueLine1() {
         this.dialogueIndex++;
-
-        if (this.dialogueIndex < this.guide_text_string.length) {
-
+        if (this.dialogueIndex < this.guide_text_string1.length) {
             this.guide_text.setText(
-                this.guide_text_string[this.dialogueIndex]
+                this.guide_text_string1[this.dialogueIndex]
             );
-
         } else {
-
             this.dialogueActive = false;
-
             this.rect_for_textbox.destroy();
             this.guide_text.destroy();
-
             this.playerspeed = 120;
-
-            // this.cameras.main.startFollow(this.player);
             this.is_camera_moving = true;
-            if (this.eventTriggered1) {
-                this.scene.start('Scene6');
-                this.registry.set('scene5_player_x', this.player.x);
-                this.registry.set('scene5_player_y', this.player.y);
-            }
-            if (this.eventTriggered2) {
-                this.scene.stop('Scene6');
-                this.scene.start('Scene7');
-                this.registry.set('scene5_player_x', this.player.x + 30);
-                this.registry.set('scene5_player_y', this.player.y);
-            }
+            this.scene.start('Scene6');
+            this.registry.set('scene5_player_x', this.player.x);
+            this.registry.set('scene5_player_y', this.player.y);
+        }
+    }
+
+    nextDialogueLine2() {
+        this.dialogueIndex++;
+        if (this.dialogueIndex < this.guide_text_string2.length) {
+            this.guide_text.setText(
+                this.guide_text_string2[this.dialogueIndex]
+            );
+        } else {
+            this.dialogueActive = false;
+            this.rect_for_textbox.destroy();
+            this.guide_text.destroy();
+            this.playerspeed = 120;
+            this.is_camera_moving = true;
+            this.scene.stop('Scene6');
+            this.scene.start('Scene7');
+            this.registry.set('scene5_player_x', this.player.x + 30);
+            this.registry.set('scene5_player_y', this.player.y);
         }
     }
 }

@@ -63,3 +63,58 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+
+// ==== VIRTUAL TOUCH CONTROLS (SMARTPHONE ADAPTATION) ====
+document.addEventListener('DOMContentLoaded', () => {
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  
+  if (isTouchDevice) {
+    const virtualControls = document.getElementById('virtual-controls');
+    if (virtualControls) {
+      virtualControls.style.display = 'block';
+
+      // Map DOM element IDs to physical KeyCodes
+      const keyMap = {
+        'btn-w': 87,   // W
+        'btn-s': 83,   // S
+        'btn-a': 65,   // A
+        'btn-d': 68,   // D
+        'btn-enter': 13, // ENTER
+        'btn-b': 66    // B
+      };
+
+      // Helper function to dispatch native Keyboard Events
+      const simulateKey = (keyCode, type) => {
+        window.dispatchEvent(new KeyboardEvent(type, {
+          keyCode: keyCode,
+          which: keyCode,
+          code: `Key${String.fromCharCode(keyCode)}`,
+          bubbles: true
+        }));
+      };
+
+      // Assign touch listeners to each virtual button
+      Object.keys(keyMap).forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            simulateKey(keyMap[btnId], 'keydown');
+            if (btnId === 'btn-enter' || btnId === 'btn-b') {
+                // Polling tools like JustDown require explicit down->up lifecycle buffers rapidly
+                setTimeout(() => simulateKey(keyMap[btnId], 'keyup'), 100);
+            }
+          });
+          btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            simulateKey(keyMap[btnId], 'keyup');
+          });
+          btn.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            simulateKey(keyMap[btnId], 'keyup');
+          });
+        }
+      });
+    }
+  }
+});

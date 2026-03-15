@@ -17,9 +17,9 @@ export default class Scene12 extends Phaser.Scene {
         this.dialogueActive = false;
 
         this.guide_text_string = [
-            'poi ci penso',
-            'sto pensando',
-            'vedo dopo con paolo'
+            'La tua ostinazione è ammirevole, umano.',
+            'Ma Tifone non avrà pietà.',
+            'Non farò un passo indietro, arrenditi o muori!'
         ]
         this.dialogueIndex = 0;
 
@@ -214,6 +214,7 @@ export default class Scene12 extends Phaser.Scene {
         }
 
         if (this.player.x < 8) {
+            this.registry.set('returning_from_scene12', true);
             this.scene.start('Scene10');
         }
 

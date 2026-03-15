@@ -31,6 +31,11 @@ export default class SceneGameWin extends Phaser.Scene {
         this.input.keyboard.once('keydown-ENTER', () => {
             // Reset player level to 1 when returning to title
             this.registry.set('player_level', 1);
+            this.registry.set('is_player_human', true);
+            this.registry.set('returning_from_scene12', false);
+            this.registry.set('scene11_npc_defeated', false);
+            this.registry.set('scene13_npc_defeated', false);
+            this.registry.set('enemy1_defeated', false);
             this.scene.start('Scene1');
         });
     }
